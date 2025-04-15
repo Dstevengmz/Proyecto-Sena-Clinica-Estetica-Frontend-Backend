@@ -1,0 +1,39 @@
+Darwin
+* Comandos Implementados Backend
+npx sequelize-cli model:generate --name Usuarios --attributes nombre:string,email:string,contrasena:string,rol:string,telefono:integer,direccion:string,fecha_registro:date,genero:string,fecha_nacimiento:date,ocupacion:string,estado_civil:string
+
+Libreria para dependencia de desarrollo
+npm install --save-dev nodemon
+
+
+
+Migrar
+npx sequelize-cli db:migrate
+Desmigrar
+npx sequelize-cli db:migrate:undo
+
+
+Instalar librerias
+npm install i
+
+
+Darwin
+Comandos Implementados Frontend
+Crar proyecto Frontend React vite
+npm create vite@latest
+Instalar librerias
+npm install 
+Correr proyecto
+npm run dev
+
+Instalar react Router
+npm install react-router-dom
+
+Instalar Iconos
+npm install bootstrap-icons
+
+Instalar Indicadores
+npm install react-phone-input-2
+Estilos
+npm install --save react-phone-input-2
+
