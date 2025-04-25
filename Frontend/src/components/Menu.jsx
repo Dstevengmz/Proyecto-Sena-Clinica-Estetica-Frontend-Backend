@@ -4,6 +4,8 @@ import Registrar from './pages/Registrar'
 import Inicio from './pages/Inicio'
 import Layout from './base'
 import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
+
 
 function Menu() {
   return (
@@ -12,6 +14,7 @@ function Menu() {
         <Route path="/" element={<Inicio />} />
         <Route path="/iniciarsesion" element={<Layout><Login /></Layout>} />
         <Route path="/registro" element={<Layout><Registrar /></Layout>} />
+        <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
       </Routes>
     </Router>
   )

@@ -4,12 +4,14 @@
   "description": "Clinica estetica clinica-rejuvenezk Realizado en el sena para optar por el titulo de Desarrollador de software",
   "main": "index.js",
   "scripts": {
-     "dev": "nodemon app.js"
+    "dev": "nodemon app.js"
   },
   "author": "Darwin,lilian,Liliana,Valery,Constanza",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "i": "^0.3.7",
     "jsonwebtoken": "^9.0.2",

@@ -1,5 +1,7 @@
 const { Usuarios } = require("../models");
 const jwt = require("jsonwebtoken");
+const bcrypt = require('bcrypt');
+const hashaleatorio  = 10;
 class UsuariosService {
 
   async listarLosUsuarios() {
@@ -11,7 +13,11 @@ class UsuariosService {
   }
 
   async crearLosUsuarios(data) {
-    return await Usuarios.create(data);
+    const hashedPassword = await bcrypt.hash(data.contrasena,hashaleatorio);
+    return await Usuarios.create({
+      ...data,
+      contrasena: hashedPassword,
+    });
   }
 
 
@@ -30,6 +36,26 @@ class UsuariosService {
     } catch (e) {
         console.log("Error en el servidor al actualizar el usuario:", e);
     }
+}
+
+async iniciarSesion(correo, contrasena) {
+  try{
+    const usuario = await Usuarios.findOne({ where: { correo } });
+  if (!usuario) {
+    return { error: "Correo no registrado" };
+  }
+  const contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena);
+  if (!contrasenaValida) {
+    return { error: "Credenciales incorrectas" };
+  }
+  const token = jwt.sign({ id: usuario.id, correo: usuario.correo },process.env.JWT_SECRET,{ expiresIn: "1h" });
+  console.log("Token generado:", token);
+  return { token, usuario };
+  }catch (error)
+  {
+    console.error("Error al procesar la solicitud de inicio de sesión:", error);
+    return { error: "Error al procesar la solicitud de inicio de sesión" };
+  }
 }
 }
 

@@ -2,6 +2,8 @@ const Usuarios = require('./routers/UsuariosRouters');
 const express = require('express');
 const cors = require('cors');
 const app = express();
+require('dotenv').config();
+
 const puerto = 2100;
 
 app.use(

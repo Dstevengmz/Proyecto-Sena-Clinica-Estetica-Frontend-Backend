@@ -30,7 +30,7 @@ function Registrar() {
 
     try {
       await axios.post(`${API_URL}/apiusuarios/crearusuarios`, {
-        nombre,email: correo,contrasena,rol,telefono: phone,direccion,genero,ocupacion,estado_civil: estadoCivil,
+        nombre,correo: correo,contrasena,rol,telefono: phone,direccion,genero,ocupacion,estado_civil: estadoCivil,
       });
       setMensaje('Registro exitoso');
       navigate('/');
@@ -64,7 +64,7 @@ function Registrar() {
                     <label className="form-label">Ingrese su Correo Electrónico</label>
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-envelope"></i></span>
-                      <input type="email" className="form-control" required placeholder="Correo Electrónico" value={correo} onChange={(e) => setCorreo(e.target.value)} />
+                      <input type="correo" className="form-control" required placeholder="Correo Electrónico" value={correo} onChange={(e) => setCorreo(e.target.value)} />
                     </div>
                   </div>
 

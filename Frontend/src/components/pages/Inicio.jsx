@@ -1,7 +1,15 @@
 
 import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
+import { cerrarSesion } from './CerrarSesion';
+import { useNavigate } from 'react-router-dom'
 function NavbarPrincipal() {
+  const navigate = useNavigate();
+
+  const envioCerrarSesion = () => {
+    cerrarSesion(navigate);
+  };
+  
   return (
     <Navbar expand="lg" bg="primary" variant="dark" sticky="top">
       <Container>
@@ -19,6 +27,7 @@ function NavbarPrincipal() {
           <Nav>
             <Nav.Link as={Link} to="/iniciarsesion">Iniciar sesión</Nav.Link>
             <Nav.Link as={Link} to="/registro">Registrarse</Nav.Link>
+            <Nav.Link onClick={envioCerrarSesion}>Cerrar sesión</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
