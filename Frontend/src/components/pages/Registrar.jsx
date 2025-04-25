@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/bootstrap.css';
 import axios from 'axios';
-
+import { useNavigate } from 'react-router-dom'
 const API_URL = import.meta.env.VITE_API_URL;
 
 function Registrar() {
+  const navigate = useNavigate();
   const [phone, setPhone] = useState('');
   const [nombre, setNombre] = useState('');
   const [correo, setCorreo] = useState('');
@@ -32,6 +33,7 @@ function Registrar() {
         nombre,email: correo,contrasena,rol,telefono: phone,direccion,genero,ocupacion,estado_civil: estadoCivil,
       });
       setMensaje('Registro exitoso');
+      navigate('/');
       setError('');
     } catch (err) {
       setError('Error al registrar usuario');
