@@ -21,7 +21,8 @@ module.exports = {
         type: Sequelize.STRING
       },
       rol: {
-        type: Sequelize.STRING
+        type: Sequelize.ENUM('doctor', 'usuario', 'asistente'),
+        allowNull: false,
       },
       telefono: {
         type: Sequelize.BIGINT

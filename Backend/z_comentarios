@@ -37,3 +37,6 @@ npm install react-phone-input-2
 Estilos
 npm install --save react-phone-input-2
 
+Instalar axios
+npm install axios
+

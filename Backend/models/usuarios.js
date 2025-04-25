@@ -23,8 +23,8 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     rol: {
-      type: DataTypes.STRING,
-      allowNull: false
+      type: DataTypes.ENUM('doctor', 'usuario', 'asistente'),
+      allowNull: false,
     },
     telefono: {
       type: DataTypes.BIGINT,
