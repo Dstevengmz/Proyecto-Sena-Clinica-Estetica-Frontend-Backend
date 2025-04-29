@@ -1,4 +1,5 @@
 const Usuarios = require('./routers/UsuariosRouters');
+const HistorialMedico = require('./routers/HistorialMedicoRouters');
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -18,7 +19,8 @@ app.use(
 app.use(express.json());
 
 
-app.use('/apiusuarios', Usuarios);
+app.use('/apiusuarios',Usuarios);
+app.use('/apihistorialmedico',HistorialMedico);
 
 app.listen(puerto, () => {
     console.log(`Servidor corriendo en http://localhost:${puerto}`);

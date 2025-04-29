@@ -20,7 +20,6 @@ class UsuariosService {
     });
   }
 
-
   async  eliminarLosUsuarios(id) {
     const usuario = await Usuarios.findByPk(id);
     if (usuario) {

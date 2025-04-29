@@ -25,6 +25,17 @@ class UsuariosController {
     }
   }
 
+  async perfilUsuario(req, res) {
+    const id = req.usuario.id;
+  
+    const usuario = await usuariosService.buscarLosUsuarios(id);
+    if (!usuario) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+  
+    res.json({ usuario });
+  }
+
   async actualizarUsuario(req, res) {
     try {
         const { id } = req.params;

@@ -8,7 +8,7 @@ const authorization = async (req, res, next) => {
     try {
       const tokenBearer = token.replace("Bearer", "").trim();
       const respuestaJwT = await jwt.verify(tokenBearer, process.env.JWT_SECRET);
-      req.user = respuestaJwT;
+      req.usuario = respuestaJwT;
       next();
     } catch (error) {
       return res.json({ mensaje: "Token inválido" });

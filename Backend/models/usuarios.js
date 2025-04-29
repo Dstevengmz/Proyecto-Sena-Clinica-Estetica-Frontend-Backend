@@ -6,6 +6,10 @@ module.exports = (sequelize, DataTypes) => {
   class Usuarios extends Model 
   {
     static associate(models) {
+      Usuarios.hasOne(models.Historialclinico, {
+        foreignKey: 'usuario_id',
+        as: 'historial_medico'
+    });
     }
   }
   Usuarios.init({
