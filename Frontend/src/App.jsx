@@ -11,6 +11,7 @@ import Dashboard from './components/admin/Dashboard'
 import HistorialMedico from './components/admin/HistorialMedico/RegistrarHistorialMedico'
 import ConsultarHistorialMedico from './components/admin/HistorialMedico/ConsultarHistorialMedico'
 import DetallesHistorialMedico from './components/admin/HistorialMedico/DetallesHistorialMedico'
+import EditarHistorialClinico from './components/admin/HistorialMedico/EditarHistorialMedico'
 import { HistorialClinicoContext } from "./components/admin/HistorialMedico/ConsultarHistorialMedico";
 
 
@@ -42,6 +43,7 @@ function App() {
            <Route path="/registrarhistorialmedico" element={<HistorialMedico />} />
            <Route path="/consultarhistorialmedico" element={<ConsultarHistorialMedico />} />
            <Route path="/DetallesHistorialMedico" element={<DetallesHistorialMedico />} />
+           <Route path="/editarhistoriaclinico/:id" element={<EditarHistorialClinico />} />
         </Route>
         {/* Principales */}
         <Route path="/iniciarsesion" element={<Login />} />

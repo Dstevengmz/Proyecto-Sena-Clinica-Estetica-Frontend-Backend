@@ -89,8 +89,8 @@ function ConsultaHistorialMedico() {
                       <i className="fas fa-eye"></i>
                     </a>
                     <a
+                      onClick={() => navigate(`/editarhistoriaclinico/${historialmedico.id}`)}
                       className="btn btn-sm btn-primary mx-1"
-
                       role="button"
                       title="Editar">
                       <i className="fas fa-pen-square"></i>
