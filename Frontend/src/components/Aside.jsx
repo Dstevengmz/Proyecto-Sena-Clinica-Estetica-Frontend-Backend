@@ -1,6 +1,12 @@
 import React from "react";
-
+import CerrarSesion from "./pages/CerrarSesion";
+import { useNavigate } from "react-router-dom";
 export default function Aside() {
+  const navigate = useNavigate();
+  const manejarCerrarSesion = (e) => {
+    e.preventDefault();
+    CerrarSesion(navigate);
+  };
   return (
     <aside className="main-sidebar sidebar-dark-primary elevation-4">
       <a href="/dashboard" className="brand-link">
@@ -27,34 +33,30 @@ export default function Aside() {
             </a>
           </div>
         </div>
-        
-        {/* Sidebar Menu */}
         <nav className="mt-2">
           <ul
             className="nav nav-pills nav-sidebar flex-column"
             data-widget="treeview"
             role="menu"
-            data-accordion="false">
+            data-accordion="false"
+          >
             <li className="nav-item menu-open">
               <a href="/dashboard" className="nav-link active">
                 <i className="nav-icon fas fa-tachometer-alt" />
-                <p>
-                  Dashboard
-                 
-                </p>
+                <p>Dashboard</p>
               </a>
             </li>
             <li className="nav-item">
-              <a href="pages/widgets.html" className="nav-link">
+              <a href="" className="nav-link" onClick={manejarCerrarSesion}>
                 <i className="nav-icon fas fa-th" />
                 <p>
-                  Widgets
+                  CerrarSesion
                   <span className="right badge badge-danger"></span>
                 </p>
               </a>
             </li>
             <li className="nav-item">
-              <a href="#" className="nav-link">
+              <a href="" className="nav-link">
                 <i className="nav-icon fas fa-copy" />
                 <p>
                   HistorialClinico
@@ -70,10 +72,7 @@ export default function Aside() {
                   </a>
                 </li>
                 <li className="nav-item">
-                  <a
-                    href="/consultarhistorialmedico"
-                    className="nav-link"
-                  >
+                  <a href="/consultarhistorialmedico" className="nav-link">
                     <i className="far fa-circle nav-icon" />
                     <p>Consultar</p>
                   </a>
@@ -561,11 +560,6 @@ export default function Aside() {
                 <p>Tabbed IFrame Plugin</p>
               </a>
             </li>
-
-            
-
-
-            
           </ul>
         </nav>
         {/* /.sidebar-menu */}

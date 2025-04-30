@@ -1,5 +1,6 @@
 
-export function cerrarSesion(navigate) {
-    localStorage.removeItem("token");
-    navigate("/");
-  }
+function CerrarSesion(navigate) {
+  localStorage.removeItem("token");
+  navigate("/");
+}
+export default CerrarSesion;

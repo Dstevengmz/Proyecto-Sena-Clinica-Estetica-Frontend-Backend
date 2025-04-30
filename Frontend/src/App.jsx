@@ -23,39 +23,43 @@ import Control from './Control'
 
 import Login from './components/pages/Login'
 import Registrar from './components/pages/Registrar'
+import CerrarSesion from "./components/pages/CerrarSesion";
 
 
 function App() {
   const [selectedHistorialclinico, setSelectedHistorialclinico] = useState(null);
   return (
-    <HistorialClinicoContext.Provider value={{ selectedHistorialclinico, setSelectedHistorialclinico }}>
-    <Router>
-      <Control />
-      <Routes>
-        {/* Publicos */}
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<Inicio />} />
-          <Route path="/servicios" element={<Servicios />} />
-          <Route path="/reservar" element={<Reservar />} />
-        </Route>
+    <HistorialClinicoContext.Provider
+      value={{ selectedHistorialclinico, setSelectedHistorialclinico }}
+    >
+      <Router>
+        <Control />
+        <Routes>
+          {/* Publicos */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Inicio />} />
+            <Route path="/servicios" element={<Servicios />} />
+            <Route path="/reservar" element={<Reservar />} />
+          </Route>
 
-        {/* Administradores */}
-        <Route element={<AdminLayout />}>
-           <Route path="/dashboard" element={<Dashboard />} />
-           <Route path="/registrarhistorialmedico" element={<HistorialMedico />} />
-           <Route path="/consultarhistorialmedico" element={<ConsultarHistorialMedico />} />
-           <Route path="/DetallesHistorialMedico" element={<DetallesHistorialMedico />} />
-           <Route path="/editarhistoriaclinico/:id" element={<EditarHistorialClinico />} />
-           <Route path="/registrarcitas" element={<RegistrarCitas />} />
-        </Route>
-        {/* Principales */}
-        <Route path="/iniciarsesion" element={<Login />} />
-        <Route path="/registrar" element={<Registrar />} />
-        
-      </Routes>
-    </Router>
+          {/* Administradores */}
+          <Route element={<AdminLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/registrarhistorialmedico" element={<HistorialMedico />}/>
+            <Route path="/consultarhistorialmedico" element={<ConsultarHistorialMedico />}/>
+            <Route path="/DetallesHistorialMedico" element={<DetallesHistorialMedico />}/>
+            <Route path="/editarhistoriaclinico/:id" element={<EditarHistorialClinico />}/>
+            <Route path="/registrarcitas" element={<RegistrarCitas />} />
+          </Route>
+
+          {/* Principales */}
+          <Route path="/iniciarsesion" element={<Login />} />
+          <Route path="/registrar" element={<Registrar />} />
+          <Route path="/cerrarsesion" element={<CerrarSesion />} />
+        </Routes>
+      </Router>
     </HistorialClinicoContext.Provider>
-  )
+  );
 }
 
 export default App

@@ -5,7 +5,7 @@ const Seguridad = require("../middleware/Authorization");
 
 router.get("/listarcitas",Seguridad, CitaController.listarCitas);
 router.get("/buscarcitas/:id",Seguridad, CitaController.buscarCitas);
-router.post("/crearcitas", CitaController.crearCitas);
+router.post("/crearcitas",Seguridad, CitaController.crearCitas);
 router.patch("/editarcitas/:id",Seguridad, CitaController.actualizarCitas);
 router.delete("/eliminarcitas/:id",Seguridad, CitaController.eliminarCitas);
 
