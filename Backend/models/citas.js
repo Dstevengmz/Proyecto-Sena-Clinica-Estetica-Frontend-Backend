@@ -14,16 +14,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'id_doctor',
         as: 'doctor'
       });
-      Citas.belongsTo(models.Procedimientos, {
-        foreignKey: 'id_procedimiento',
-        as: 'procedimiento'
-      });
     }
   }
   Citas.init({
     id_usuario: DataTypes.INTEGER,
     id_doctor: DataTypes.INTEGER,
-    id_procedimiento: DataTypes.INTEGER,
     fecha: DataTypes.DATE,
     estado: DataTypes.ENUM('pendiente', 'confirmada', 'realizada', 'cancelada'),
     tipo: DataTypes.ENUM('evaluacion', 'procedimiento'),

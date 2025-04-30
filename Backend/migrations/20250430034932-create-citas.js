@@ -27,15 +27,6 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      id_procedimiento: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'Procedimientos',
-          key: 'id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
-      },
       fecha: {
         type: Sequelize.DATE
       },

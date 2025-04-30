@@ -14,6 +14,8 @@ import DetallesHistorialMedico from './components/admin/HistorialMedico/Detalles
 import EditarHistorialClinico from './components/admin/HistorialMedico/EditarHistorialMedico'
 import { HistorialClinicoContext } from "./components/admin/HistorialMedico/ConsultarHistorialMedico";
 
+import RegistrarCitas from './components/admin/Citas/RegistrarCitas'
+
 
 import Servicios from './components/pages/Servicios'
 import Control from './Control'
@@ -44,10 +46,12 @@ function App() {
            <Route path="/consultarhistorialmedico" element={<ConsultarHistorialMedico />} />
            <Route path="/DetallesHistorialMedico" element={<DetallesHistorialMedico />} />
            <Route path="/editarhistoriaclinico/:id" element={<EditarHistorialClinico />} />
+           <Route path="/registrarcitas" element={<RegistrarCitas />} />
         </Route>
         {/* Principales */}
         <Route path="/iniciarsesion" element={<Login />} />
         <Route path="/registrar" element={<Registrar />} />
+        
       </Routes>
     </Router>
     </HistorialClinicoContext.Provider>
