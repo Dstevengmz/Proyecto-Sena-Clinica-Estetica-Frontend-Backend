@@ -4,15 +4,22 @@ Darwin
 Comando Modelo Usuario
 npx sequelize-cli model:generate --name Usuarios --attributes nombre:string,email:string,contrasena:string,rol:string,telefono:integer,direccion:string,fecha_registro:date,genero:string,fecha_nacimiento:date,ocupacion:string,estado_civil:string
 
+
 Comando Modelo Historial Clinico
 npx sequelize-cli model:generate --name Historialclinico --attributes usuario_id:integer,enfermedades:text,alergias:text,cirugias_previas:text,condiciones_piel:text,embarazo_lactancia:boolean,medicamentos:text,consume_tabaco:boolean,consume_alcohol:boolean,usa_anticonceptivos:boolean,detalles_anticonceptivos:text,diabetes:boolean,hipertension:boolean,historial_cancer:boolean,problemas_coagulacion:boolean,epilepsia:boolean,otras_condiciones:text
 
+
+Comando Modelo Citas
+npx sequelize-cli model:generate --name Citas --attributes id_usuario:integer,id_doctor:integer,id_procedimiento:integer,fecha:date,estado:string,tipo:string,observaciones:text
+
+
+Comando Modelo Procedimiento
+npx sequelize-cli model:generate --name Procedimientos --attributes nombre:string,descripcion:text,precio:decimal,duracion:integer,requiere_evaluacion:boolean,examenes_requeridos:text
 
 
 
 Libreria para dependencia de desarrollo
 npm install --save-dev nodemon
-
 
 
 Migrar

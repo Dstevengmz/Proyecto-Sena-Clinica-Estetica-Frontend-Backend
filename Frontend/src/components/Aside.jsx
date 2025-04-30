@@ -3,14 +3,14 @@ import React from "react";
 export default function Aside() {
   return (
     <aside className="main-sidebar sidebar-dark-primary elevation-4">
-      <a href="index3.html" className="brand-link">
+      <a href="/dashboard" className="brand-link">
         <img
           src="dist/img/AdminLTELogo.png"
           alt="AdminLTE Logo"
           className="brand-image img-circle elevation-3"
           style={{ opacity: ".8" }}
         />
-        <span className="brand-text font-weight-light">AdminLTE 3</span>
+        <span className="brand-text font-weight-light">Rejuvenezk</span>
       </a>
       <div className="sidebar">
         <div className="user-panel mt-3 pb-3 mb-3 d-flex">

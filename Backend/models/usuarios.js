@@ -10,6 +10,14 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'usuario_id',
         as: 'historial_medico'
     });
+      Usuarios.hasMany(models.Citas, {
+        foreignKey: 'usuario_id',
+        as: 'citas_paciente'
+      });
+      Usuarios.hasMany(models.Citas, {
+        foreignKey: 'doctor_id',
+        as: 'citas_doctor'
+      });
     }
   }
   Usuarios.init({

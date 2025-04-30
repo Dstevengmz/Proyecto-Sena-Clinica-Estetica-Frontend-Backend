@@ -25,6 +25,7 @@ function ConsultaHistorialMedico() {
         },
       })
       .then((response) => {
+        console.log("Respuesta del backend:", response.data); 
         setHistorialmedico(response.data);
       })
       .catch((error) => {
