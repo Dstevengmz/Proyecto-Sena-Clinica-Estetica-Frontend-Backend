@@ -4,9 +4,22 @@ import { useNavigate } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_URL;
 
 function RegistrarCitas() {
+  const horariosDisponibles = [
+    "08:00", "08:30", "09:00", "09:30",
+    "10:00", "10:30", "11:00", "11:30",
+    "14:00", "14:30", "15:00", "15:30",
+    "16:00", "16:30", "17:00", "17:30"
+  ];
+  
+  const duraciones = {
+    evaluacion: 30,
+    procedimiento: 150
+  };
+  
   const navigate = useNavigate();
   const [usuarios, setUsuarios] = useState([]);
-
+  const [horariosOcupados, setHorariosOcupados] = useState([]);
+  const [horaSeleccionada, setHoraSeleccionada] = useState("");
   const [formData, setFormData] = useState({
     id_usuario: "",
     id_doctor: "",
@@ -36,6 +49,26 @@ function RegistrarCitas() {
     obtenerDatosUsuario();
   }, [token]);
 
+  useEffect(() => {
+    async function obtenerHorarios() {
+      if (!formData.fecha || !formData.tipo) return;
+  
+      try {
+        const respuesta = await axios.get(`${API_URL}/apicitas/horarios/${formData.fecha}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+  
+        setHorariosOcupados(respuesta.data);
+      } catch (error) {
+        console.error("Error al obtener horarios ocupados", error);
+        setHorariosOcupados([]);
+      }
+    }
+  
+    obtenerHorarios();
+  }, [formData.fecha, formData.tipo, token]);
+  
+
   const manejarCambio = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -44,16 +77,23 @@ function RegistrarCitas() {
     }));
   };
 
+
+
+
+
+
+
   const ManejarEnvio = async (e) => {
     e.preventDefault();
+    const fechaCompleta = `${formData.fecha}T${horaSeleccionada}:00`;
     try {
       const response = await axios.post(
         `${API_URL}/apicitas/crearcitas`,
-          {
-            "Content-Type": "application/json",
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        formData
+        { ...formData, fecha: fechaCompleta },
+        {
+          "Content-Type": "application/json",
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       navigate("/");
       alert("Registro exitoso");
@@ -64,12 +104,36 @@ function RegistrarCitas() {
     }
   };
 
+
+
+
+
+  function estaOcupado(hora) {
+    const fechaHora = `${formData.fecha}T${hora}:00`;
+  
+    const inicio = new Date(fechaHora);
+    const duracionMin = duraciones[formData.tipo] || 0;
+    const fin = new Date(inicio.getTime() + duracionMin * 60000);
+  
+    return horariosOcupados.some(cita => {
+      const inicioOcupado = new Date(cita.fecha);
+      const finOcupado = new Date(inicioOcupado.getTime() + duraciones[cita.tipo] * 60000);
+  
+      return (
+        (inicio >= inicioOcupado && inicio < finOcupado) ||
+        (fin > inicioOcupado && fin <= finOcupado) ||
+        (inicio <= inicioOcupado && fin >= finOcupado)
+      );
+    });
+  }
+  
+
   return (
     <div className="Container">
       <h2>Registrar Cita</h2>
       <form onSubmit={ManejarEnvio}>
         <div>
-          <label htmlFor="nombre">Usuario:</label>
+          <label htmlFor="id_usuario">Usuario:</label>
           <select
             name="id_usuario"
             className="form-select"
@@ -91,11 +155,11 @@ function RegistrarCitas() {
         </div>
 
         <div>
-          <label htmlFor="nombre">Doctor:</label>
+          <label htmlFor="id_doctor">Doctor:</label>
           <select
-            name="id_usuario"
+            name="id_doctor"
             className="form-select"
-            value={formData.id_usuario}
+            value={formData.id_doctor}
             onChange={manejarCambio}
             required
           >
@@ -113,16 +177,22 @@ function RegistrarCitas() {
         </div>
 
         <div>
-          <label htmlFor="fecha">Fecha:</label>
-          <input
-            type="date"
-            id="fecha"
-            name="fecha"
-            value={formData.fecha}
-            onChange={manejarCambio}
-            required
-          />
+          <label htmlFor="hora">Hora:</label>
+          <select
+            className="form-select"
+            name="hora"
+            value={horaSeleccionada}
+            onChange={(e) => setHoraSeleccionada(e.target.value)}
+            required>
+            <option value="">Seleccione una hora</option>
+            {horariosDisponibles.map(hora => (
+              <option key={hora} value={hora} disabled={estaOcupado(hora)}>
+                {hora} {estaOcupado(hora) ? "(Ocupado)" : ""}
+              </option>
+            ))}
+          </select>
         </div>
+
         <div>
           <label htmlFor="estado">Estado:</label>
           <input

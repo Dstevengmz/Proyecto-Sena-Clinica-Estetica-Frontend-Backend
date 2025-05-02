@@ -46,6 +46,27 @@ class CitasControllers {
     await citasService.eliminarLasCitas(req.params.id);
     res.json({ message: "Citas eliminado" });
   }
+  
+  async obtenerHorariosOcupados(req, res) {
+    const { fecha } = req.params;
+  
+    if (!fecha) {
+      return res.status(400).json({ error: "La fecha es requerida en formato YYYY-MM-DD" });
+    }
+  
+    try {
+      const citas = await citasService.obtenerCitasPorFecha(fecha);
+      res.json(citas.map(cita => ({
+        id: cita.id,
+        fecha: cita.fecha,
+        tipo: cita.tipo,
+        duracion: cita.tipo === 'evaluacion' ? 30 : 150
+      })));
+    } catch (error) {
+      console.error("Error al obtener horarios ocupados:", error);
+      res.status(500).json({ error: "Error al obtener horarios ocupados" });
+    }
+  }
 }
 
 module.exports = new CitasControllers();

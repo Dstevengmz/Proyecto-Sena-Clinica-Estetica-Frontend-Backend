@@ -41,6 +41,24 @@ class HistorialClinicoService {
         console.log("Error en el servidor al actualizar el Citas:", e);
     }
 }
+async obtenerCitasPorFecha(fecha) {
+  const inicioDelDia = new Date(`${fecha}T00:00:00`);
+  const finDelDia = new Date(`${fecha}T23:59:59`);
+
+  return await Citas.findAll({
+    where: {
+      fecha: {
+        [Op.between]: [inicioDelDia, finDelDia]
+      }
+    },
+    include: {
+      model: Usuarios,
+      as: 'usuario',
+      attributes: ['nombre']
+    },
+    order: [['fecha', 'ASC']]
+  });
+}
 }
 
 module.exports = new HistorialClinicoService();
