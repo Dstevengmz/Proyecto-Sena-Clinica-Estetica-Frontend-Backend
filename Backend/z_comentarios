@@ -6,7 +6,7 @@ npx sequelize-cli model:generate --name Usuarios --attributes nombre:string,emai
 
 
 Comando Modelo Historial Clinico
-npx sequelize-cli model:generate --name Historialclinico --attributes usuario_id:integer,enfermedades:text,alergias:text,cirugias_previas:text,condiciones_piel:text,embarazo_lactancia:boolean,medicamentos:text,consume_tabaco:boolean,consume_alcohol:boolean,usa_anticonceptivos:boolean,detalles_anticonceptivos:text,diabetes:boolean,hipertension:boolean,historial_cancer:boolean,problemas_coagulacion:boolean,epilepsia:boolean,otras_condiciones:text
+npx sequelize-cli model:generate --name Historialclinico --attributes id_usuario:integer,enfermedades:text,alergias:text,cirugias_previas:text,condiciones_piel:text,embarazo_lactancia:boolean,medicamentos:text,consume_tabaco:boolean,consume_alcohol:boolean,usa_anticonceptivos:boolean,detalles_anticonceptivos:text,diabetes:boolean,hipertension:boolean,historial_cancer:boolean,problemas_coagulacion:boolean,epilepsia:boolean,otras_condiciones:text
 
 
 Comando Modelo Citas

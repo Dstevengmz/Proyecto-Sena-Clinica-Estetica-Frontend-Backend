@@ -66,6 +66,7 @@ class CitasControllers {
       console.error("Error al obtener horarios ocupados:", error);
       res.status(500).json({ error: "Error al obtener horarios ocupados" });
     }
+    console.log("Fecha recibida:", fecha);
   }
 }
 

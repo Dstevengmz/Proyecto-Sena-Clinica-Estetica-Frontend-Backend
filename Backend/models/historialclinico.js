@@ -7,13 +7,13 @@ module.exports = (sequelize, DataTypes) => {
     
     static associate(models) {
       Historialclinico.belongsTo(models.Usuarios, {
-        foreignKey: 'usuario_id',
+        foreignKey: 'id_usuario',
         as: 'usuario'
     });
     }
   }
   Historialclinico.init({
-    usuario_id: DataTypes.INTEGER,
+    id_usuario: DataTypes.INTEGER,
     enfermedades: DataTypes.TEXT,
     alergias: DataTypes.TEXT,
     cirugias_previas: DataTypes.TEXT,

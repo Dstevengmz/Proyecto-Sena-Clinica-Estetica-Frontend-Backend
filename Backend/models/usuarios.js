@@ -7,15 +7,15 @@ module.exports = (sequelize, DataTypes) => {
   {
     static associate(models) {
       Usuarios.hasOne(models.Historialclinico, {
-        foreignKey: 'usuario_id',
+        foreignKey: 'id_usuario',
         as: 'historial_medico'
     });
       Usuarios.hasMany(models.Citas, {
-        foreignKey: 'usuario_id',
+        foreignKey: 'id_usuario',
         as: 'citas_paciente'
       });
       Usuarios.hasMany(models.Citas, {
-        foreignKey: 'doctor_id',
+        foreignKey: 'id_doctor',
         as: 'citas_doctor'
       });
     }

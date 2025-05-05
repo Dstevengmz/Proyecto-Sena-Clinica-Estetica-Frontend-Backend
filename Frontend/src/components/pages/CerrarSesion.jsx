@@ -1,6 +1,6 @@
 
 function CerrarSesion(navigate) {
   localStorage.removeItem("token");
-  navigate("/");
+  navigate("/iniciarsesion");
 }
 export default CerrarSesion;

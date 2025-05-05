@@ -1,23 +1,38 @@
 const { Citas,Usuarios  } = require("../models");
+const { Op } = require("sequelize");
 class HistorialClinicoService {
 
   async listarLasCitas() {
     return await Citas.findAll({
-      include: {
+      include: [
+        {
         model: Usuarios,
         as: 'usuario',
         attributes: ['nombre', 'correo', 'telefono', 'direccion', 'fecha_nacimiento','genero','rol','ocupacion'] 
+      },
+      {
+        model: Usuarios,
+        as: 'doctor',
+        attributes: ['nombre']
       }
+    ]
     });
   }
 
   async buscarLasCitas(id) {
     return await Citas.findByPk(id, {
-      include: {
+      include: [
+        {
         model: Usuarios,
         as: 'usuario',
-        attributes: ['nombre', 'correo', 'telefono', 'direccion', 'fecha_nacimiento','genero','rol','ocupacion']
+        attributes: ['nombre', 'correo', 'telefono', 'direccion', 'fecha_nacimiento','genero','rol','ocupacion'] 
+      },
+      {
+        model: Usuarios,
+        as: 'doctor',
+        attributes: ['nombre']
       }
+    ]
     });
   }
 
@@ -41,9 +56,14 @@ class HistorialClinicoService {
         console.log("Error en el servidor al actualizar el Citas:", e);
     }
 }
+
 async obtenerCitasPorFecha(fecha) {
   const inicioDelDia = new Date(`${fecha}T00:00:00`);
   const finDelDia = new Date(`${fecha}T23:59:59`);
+
+  if (isNaN(inicioDelDia.getTime()) || isNaN(finDelDia.getTime())) {
+    throw new Error("Fecha no Valida");
+  }
 
   return await Citas.findAll({
     where: {
@@ -59,6 +79,7 @@ async obtenerCitasPorFecha(fecha) {
     order: [['fecha', 'ASC']]
   });
 }
+
 }
 
 module.exports = new HistorialClinicoService();

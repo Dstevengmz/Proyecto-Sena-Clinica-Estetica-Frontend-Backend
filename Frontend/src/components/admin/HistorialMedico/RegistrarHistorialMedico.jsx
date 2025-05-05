@@ -70,7 +70,7 @@ function HistorialMedico() {
             `${API_URL}/apihistorialmedico/crearhistorialclinico`,
             {
               ...formulario,
-              usuario_id: usuario.id,
+              id_usuario: usuario.id,
             },
             {
               headers: { Authorization: `Bearer ${token}` },

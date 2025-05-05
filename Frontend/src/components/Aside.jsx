@@ -86,36 +86,24 @@ export default function Aside() {
               </ul>
             </li>
             <li className="nav-item">
-              <a href="#" className="nav-link">
+              <a href="" className="nav-link">
                 <i className="nav-icon fas fa-chart-pie" />
                 <p>
-                  Charts
+                  Registro Citas
                   <i className="right fas fa-angle-left" />
                 </p>
               </a>
               <ul className="nav nav-treeview">
                 <li className="nav-item">
-                  <a href="pages/charts/chartjs.html" className="nav-link">
+                  <a href="/registrarcitas" className="nav-link">
                     <i className="far fa-circle nav-icon" />
-                    <p>ChartJS</p>
+                    <p>Registrar</p>
                   </a>
                 </li>
                 <li className="nav-item">
-                  <a href="pages/charts/flot.html" className="nav-link">
+                  <a href="/consultarcitas" className="nav-link">
                     <i className="far fa-circle nav-icon" />
-                    <p>Flot</p>
-                  </a>
-                </li>
-                <li className="nav-item">
-                  <a href="pages/charts/inline.html" className="nav-link">
-                    <i className="far fa-circle nav-icon" />
-                    <p>Inline</p>
-                  </a>
-                </li>
-                <li className="nav-item">
-                  <a href="pages/charts/uplot.html" className="nav-link">
-                    <i className="far fa-circle nav-icon" />
-                    <p>uPlot</p>
+                    <p>Consultar Citas</p>
                   </a>
                 </li>
               </ul>

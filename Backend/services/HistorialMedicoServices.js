@@ -13,13 +13,18 @@ class HistorialClinicoService {
   }
 
   async buscarLosHistorialesClinicos(id) {
-    return await Historialclinico.findByPk(id, {
-      include: {
-        model: Usuarios,
-        as: 'usuario',
-        attributes: ['nombre', 'correo', 'telefono', 'direccion', 'fecha_nacimiento','genero','rol','ocupacion']
-      }
-    });
+    try {
+      return await Historialclinico.findByPk(id, {
+        include: {
+          model: Usuarios,
+          as: 'usuario',
+          attributes: ['nombre', 'correo', 'telefono', 'direccion', 'fecha_nacimiento','genero','rol','ocupacion']
+        }
+      });
+    }
+    catch (e) {
+      console.log("Error en el servidor al buscar el Historialclinico:", e);
+    }
   }
 
   async crearLosHistorialesClinicos(data) {

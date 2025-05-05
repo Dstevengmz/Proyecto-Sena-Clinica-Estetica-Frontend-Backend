@@ -13,8 +13,11 @@ import ConsultarHistorialMedico from './components/admin/HistorialMedico/Consult
 import DetallesHistorialMedico from './components/admin/HistorialMedico/DetallesHistorialMedico'
 import EditarHistorialClinico from './components/admin/HistorialMedico/EditarHistorialMedico'
 import { HistorialClinicoContext } from "./components/admin/HistorialMedico/ConsultarHistorialMedico";
+import { CitasContext } from "./components/admin/Citas/Consultarcitas";
 
 import RegistrarCitas from './components/admin/Citas/RegistrarCitas'
+import ConsultarCitas from './components/admin/Citas/Consultarcitas'
+import DetallesCitas from './components/admin/Citas/DetallesCitas'
 
 
 import Servicios from './components/pages/Servicios'
@@ -28,10 +31,10 @@ import CerrarSesion from "./components/pages/CerrarSesion";
 
 function App() {
   const [selectedHistorialclinico, setSelectedHistorialclinico] = useState(null);
+  const [selectedCitas, setSelectedCitas] = useState(null);
   return (
-    <HistorialClinicoContext.Provider
-      value={{ selectedHistorialclinico, setSelectedHistorialclinico }}
-    >
+    <HistorialClinicoContext.Provider value={{ selectedHistorialclinico, setSelectedHistorialclinico }}>
+      <CitasContext.Provider value={{ selectedCitas, setSelectedCitas }}>
       <Router>
         <Control />
         <Routes>
@@ -50,6 +53,8 @@ function App() {
             <Route path="/DetallesHistorialMedico" element={<DetallesHistorialMedico />}/>
             <Route path="/editarhistoriaclinico/:id" element={<EditarHistorialClinico />}/>
             <Route path="/registrarcitas" element={<RegistrarCitas />} />
+            <Route path="/consultarcitas" element={<ConsultarCitas />} />
+            <Route path="/detallesCitas" element={<DetallesCitas />} />
           </Route>
 
           {/* Principales */}
@@ -58,6 +63,7 @@ function App() {
           <Route path="/cerrarsesion" element={<CerrarSesion />} />
         </Routes>
       </Router>
+    </CitasContext.Provider>
     </HistorialClinicoContext.Provider>
   );
 }
