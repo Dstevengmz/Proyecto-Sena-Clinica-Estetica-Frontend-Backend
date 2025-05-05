@@ -25,14 +25,16 @@ class CitasControllers {
     }
   }
 
-  async actualizarCitas(req, res) {
+  async actualizarCitas(req, res)
+  {
     try {
         const { id } = req.params;
-        const { usuario_id,enfermedades,alergias,cirugias_previas,condiciones_piel,embarazo_lactancia,medicamentos,consume_tabaco,consume_alcohol,usa_anticonceptivos,detalles_anticonceptivos,diabetes,hipertension,historial_cancer,problemas_coagulacion,epilepsia,otras_condiciones } = req.body;
-        if (isNaN(id)) {
+        const {id_usuario,id_doctor,fecha,estado,tipo} = req.body;
+        if (isNaN(id))
+        {
             return res.status(400).json({ error: "ID inválido" });
         }
-        let resultado = await citasService.actualizarLasCitas(id, {usuario_id,enfermedades,alergias,cirugias_previas,condiciones_piel,embarazo_lactancia,medicamentos,consume_tabaco,consume_alcohol,usa_anticonceptivos,detalles_anticonceptivos,diabetes,hipertension,historial_cancer,problemas_coagulacion,epilepsia,otras_condiciones});
+        let resultado = await citasService.actualizarLasCitas(id, {id_usuario,id_doctor,fecha,estado,tipo});
         if (!resultado[0]) {
             return res.status(404).json({ error: "Citas no encontrado" });
         }

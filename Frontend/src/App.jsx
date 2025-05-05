@@ -18,6 +18,7 @@ import { CitasContext } from "./components/admin/Citas/Consultarcitas";
 import RegistrarCitas from './components/admin/Citas/RegistrarCitas'
 import ConsultarCitas from './components/admin/Citas/Consultarcitas'
 import DetallesCitas from './components/admin/Citas/DetallesCitas'
+// import EditarCitas from './components/admin/Citas/EditarCitas'
 
 
 import Servicios from './components/pages/Servicios'
@@ -55,6 +56,7 @@ function App() {
             <Route path="/registrarcitas" element={<RegistrarCitas />} />
             <Route path="/consultarcitas" element={<ConsultarCitas />} />
             <Route path="/detallesCitas" element={<DetallesCitas />} />
+            {/* <Route path="/detallescitas/:id" element={<EditarCitas />} /> */}
           </Route>
 
           {/* Principales */}

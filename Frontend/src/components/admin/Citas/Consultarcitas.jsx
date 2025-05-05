@@ -91,7 +91,7 @@ function Consultarcitas() {
                       <i className="fas fa-eye"></i>
                     </a>
                     <a
-                      onClick={() => navigate(`/editarhistoriaclinico/${citas.id}`)}
+                      onClick={() => navigate(`/detallescitas/${citas.id}`)}
                       className="btn btn-sm btn-primary mx-1"
                       role="button"
                       title="Editar">
