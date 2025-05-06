@@ -1,99 +1,118 @@
-import { Form, Row, Col, Card } from "react-bootstrap";
+import { Form, Row, Col, Card, Container } from "react-bootstrap";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
-function EditarCitas()
-{
-    const { id } = useParams();
-      const [formulario, setFormulario] = useState({
-        id_usuario:"",
-        id_doctor:"",
-        fecha:"",
-        estado:"",
-        tipo:"",
-        observaciones:"",
-        usuario:{},
-    });
+function EditarCitas() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-    
-        if (!token) {
-          alert("No estás autenticado");
-          return;
-        }
-    
-        const obtenerCitas = async () => {
-          try {
-            const response = await axios.get(
-              `${API_URL}/apicitas/buscarcitas/${id}`,
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            setFormulario(response.data);
-          } catch (error) {
-            console.error("Error al cargar Las citas:", error);
-            alert("No se pudo cargar la información de la Cita");
-          }
-        };
-    
-        obtenerCitas();
-      }, [id]);
+  const horariosDisponibles = [
+    "08:00",
+    "08:30",
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "12:00",
+    "12:30",
+    "13:00",
+    "13:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
+    "17:00",
+    "17:30",
+  ];
 
+  const [usuarios, setUsuarios] = useState([]);
+  const [formulario, setFormulario] = useState({
+    id_usuario: "",
+    id_doctor: "",
+    fecha: "",
+    estado: "",
+    tipo: "",
+    observaciones: "",
+    usuario: {},
+    doctor: {},
+  });
+  const [hora, setHora] = useState("");
 
-const actualizarCitas = async (e) => {
-        e.preventDefault();
-        try {
-          const token = localStorage.getItem("token");
-          if (!token) {
-            alert("No estás autenticado");
-            return;
-          }
-    
-          await axios.patch(
-            `${API_URL}/apicitas/editarcitas/${id}`,
-            formulario,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-    
-          alert("La Cita se ha actualizado Correctamente");
-          navigate("/consultarcitas");
-        } catch (error) {
-          console.error("Error al actualizar La cita Medica:", error);
-          alert("No se pudo actualizar La cita Medica");
-        }
-      };
-      
-    return(
-        <div>
-        <h1>Editar Cita</h1>
-        <Card className="mb-4">
+  // Cargar usuarios (doctores)
+  useEffect(() => {
+    if (!token) return;
+    axios
+      .get(`${API_URL}/apiusuarios/listarusuarios`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setUsuarios(res.data))
+      .catch((err) => console.error("Error al cargar usuarios:", err));
+  }, [token]);
+
+  // Cargar cita
+  useEffect(() => {
+    if (!token) return;
+    axios
+      .get(`${API_URL}/apicitas/buscarcitas/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        const cita = res.data;
+        const [fecha, horaStr] = cita.fecha.split(" ");
+        setFormulario({ ...cita, fecha });
+        setHora(horaStr.slice(0, 5));
+      })
+      .catch((err) => {
+        console.error("Error al cargar cita:", err);
+        alert("No se pudo cargar la cita.");
+      });
+  }, [id, token]);
+
+  // Actualizar cambios del formulario
+  const manejarCambio = (e) => {
+    const { name, value } = e.target;
+    setFormulario((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Enviar cambios
+  const actualizarCita = async (e) => {
+    e.preventDefault();
+
+    const fechaCompleta = `${formulario.fecha} ${hora}:00`;
+    try {
+      await axios.patch(
+        `${API_URL}/apicitas/editarcitas/${id}`,
+        { ...formulario, fecha: fechaCompleta },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Cita actualizada correctamente");
+      navigate("/consultarcitas");
+    } catch (err) {
+      console.error("Error al actualizar cita:", err);
+      alert("No se pudo actualizar la cita");
+    }
+  };
+
+  return (
+    <Container>
+      <h2 className="mt-4">Editar Cita</h2>
+      <Card className="mb-4">
         <Card.Body>
-          <h4>Detalles del Usuario</h4>
+          <h5>Información del Usuario</h5>
           <Row>
             <Col md={6}>
               <p>
                 <strong>Nombre:</strong> {formulario.usuario?.nombre}
               </p>
             </Col>
-            <Col md={6}>
-              <p>
-                <strong>Doctor:</strong> {formulario.doctor?.nombre}
-              </p>
-            </Col>
-          </Row>
-          <Row>
             <Col md={6}>
               <p>
                 <strong>Teléfono:</strong> {formulario.usuario?.telefono}
@@ -105,8 +124,6 @@ const actualizarCitas = async (e) => {
                 {formulario.usuario?.direccion || "No registrada"}
               </p>
             </Col>
-          </Row>
-          <Row>
             <Col md={6}>
               <p>
                 <strong>Rol:</strong> {formulario.usuario?.rol}
@@ -115,95 +132,97 @@ const actualizarCitas = async (e) => {
           </Row>
         </Card.Body>
       </Card>
-            <Form onSubmit={actualizarCitas}>
-              <input type="hidden" name="id_usuario" value={formulario.id_usuario} />
-              <div>
-                <label>Doctor:</label>
-                <select
-                  name="id_doctor"
-                  className="form-select"
-                  value={formulario.id_doctor}
-                  onChange={(e) => setFormulario({ ...formulario, [e.target.name]: e.target.value })}
-                  required
-                >
-                  <option value="">Seleccione un Doctor</option>
-                  {usuarios
-                    .filter((u) => u.rol === "doctor")
-                    .map((doctor) => (
-                      <option key={doctor.id} value={doctor.id}>
-                        {doctor.nombre}
-                      </option>
-                    ))}
-                </select>
-              </div>
-      
-              <div>
-                <label>Tipo:</label>
-                <select
-                  className="form-select"
-                  name="tipo"
-                  value={formulario.tipo}
-                  onChange={manejarCambio}
-                  required
-                >
-                  <option value="">Seleccione tipo</option>
-                  <option value="evaluacion">Evaluación</option>
-                  <option value="procedimiento">Procedimiento</option>
-                </select>
-              </div>
-      
-              <div>
-                <label>Fecha:</label>
-                <input
-                  type="date"
-                  name="fecha"
-                  className="form-control"
-                  value={formulario.fecha}
-                  onChange={manejarCambio}
-                  required
-                />
-              </div>
-      
-              <div>
-                <label>Hora:</label>
-                <select
-                  className="form-select"
-                  value={formulario.hora || ""}
-                  onChange={(e) => setFormulario({ ...formulario, hora: e.target.value })}
-                  required
-                >
-                  <option value="">Seleccione una hora</option>
-                  {["08:00", "09:00", "10:00", "11:00", "12:00"].map((hora) => (
-                    <option key={hora} value={hora}>
-                      {hora}
-                    </option>
-                  ))}
-                </select>
-              </div>
-      
-              <div>
-                <label>Observaciones:</label>
-                <input
-                  type="text"
-                  name="observaciones"
-                  className="form-control"
-                  value={formulario.observaciones}
-                  onChange={manejarCambio}
-                />
-              </div>
-      
-              <button type="submit" className="btn btn-primary">
-                Registrar
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => navigate("/")}
+
+      <Form onSubmit={actualizarCita}>
+        <Form.Group className="mb-3">
+          <Form.Label>Doctor</Form.Label>
+          <Form.Select
+            name="id_doctor"
+            value={formulario.id_doctor}
+            onChange={manejarCambio}
+            required
+          >
+            <option value="">Seleccione un doctor</option>
+            {usuarios
+              .filter((u) => u.rol === "doctor")
+              .map((doc) => (
+                <option key={doc.id} value={doc.id}>
+                  {doc.nombre}
+                </option>
+              ))}
+          </Form.Select>
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Tipo</Form.Label>
+          <Form.Select
+            name="tipo"
+            value={formulario.tipo}
+            onChange={manejarCambio}
+            required
+          >
+            <option value="">Seleccione tipo</option>
+            <option value="evaluacion">Evaluación</option>
+            <option value="procedimiento">Procedimiento</option>
+          </Form.Select>
+        </Form.Group>
+
+        <Row>
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>Fecha</Form.Label>
+              <Form.Control
+                type="date"
+                name="fecha"
+                value={formulario.fecha}
+                onChange={manejarCambio}
+                required
+              />
+            </Form.Group>
+          </Col>
+
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>Hora</Form.Label>
+              <Form.Select
+                value={hora}
+                onChange={(e) => setHora(e.target.value)}
+                required
               >
-                Cancelar
-              </button>
-            </Form>
-        </div>
-    )
+                <option value="">Seleccione una hora</option>
+                {horariosDisponibles.map((h) => (
+                  <option key={h} value={h}>
+                    {h}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+        </Row>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Observaciones</Form.Label>
+          <Form.Control
+            type="text"
+            name="observaciones"
+            value={formulario.observaciones}
+            onChange={manejarCambio}
+          />
+        </Form.Group>
+
+        <button type="submit" className="btn btn-success me-2">
+          Actualizar
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => navigate("/consultarcitas")}
+        >
+          Cancelar
+        </button>
+      </Form>
+    </Container>
+  );
 }
-export  default EditarCitas;
+
+export default EditarCitas;
