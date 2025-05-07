@@ -29,12 +29,12 @@ class CitasControllers {
   {
     try {
         const { id } = req.params;
-        const {id_usuario,id_doctor,fecha,estado,tipo} = req.body;
+        const {id_usuario,id_doctor,fecha,estado,tipo,observaciones} = req.body;
         if (isNaN(id))
         {
             return res.status(400).json({ error: "ID inválido" });
         }
-        let resultado = await citasService.actualizarLasCitas(id, {id_usuario,id_doctor,fecha,estado,tipo});
+        let resultado = await citasService.actualizarLasCitas(id, {id_usuario,id_doctor,fecha,estado,tipo,observaciones});
         if (!resultado[0]) {
             return res.status(404).json({ error: "Citas no encontrado" });
         }

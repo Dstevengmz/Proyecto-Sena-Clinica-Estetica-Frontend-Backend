@@ -73,6 +73,15 @@ function DetallesCitas() {
               </p>
             </Col>
           </Row>
+
+          <h4 className="mt-4">Observaciones</h4>
+          <Row>
+            <Col md={6}>
+              <p>
+                <strong>Observaciones:</strong> {selectedCitas.observaciones}
+              </p>
+            </Col>
+          </Row>
         </Card.Body>
       </Card>
     </div>
