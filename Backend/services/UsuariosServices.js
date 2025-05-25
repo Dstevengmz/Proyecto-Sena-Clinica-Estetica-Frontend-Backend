@@ -47,7 +47,7 @@ async iniciarSesion(correo, contrasena) {
   if (!contrasenaValida) {
     return { error: "Credenciales incorrectas" };
   }
-  const token = jwt.sign({ id: usuario.id, correo: usuario.correo },process.env.JWT_SECRET,{ expiresIn: "1h" });
+  const token = jwt.sign({ id: usuario.id, correo: usuario.correo },process.env.JWT_SECRET,{ expiresIn: "3h" });
   console.log("Token generado:", token);
   return { token, usuario };
   }catch (error)

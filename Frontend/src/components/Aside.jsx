@@ -77,12 +77,6 @@ export default function Aside() {
                     <p>Consultar</p>
                   </a>
                 </li>
-                {/* <li className="nav-item">
-                  <a href="pages/layout/boxed.html" className="nav-link">
-                    <i className="far fa-circle nav-icon" />
-                    <p>Boxed</p>
-                  </a>
-                </li> */}
               </ul>
             </li>
             <li className="nav-item">
@@ -112,15 +106,15 @@ export default function Aside() {
               <a href="#" className="nav-link">
                 <i className="nav-icon fas fa-tree" />
                 <p>
-                  UI Elements
+                  Procedimientos
                   <i className="fas fa-angle-left right" />
                 </p>
               </a>
               <ul className="nav nav-treeview">
                 <li className="nav-item">
-                  <a href="pages/UI/general.html" className="nav-link">
+                  <a href="/registrarprocedimientos" className="nav-link">
                     <i className="far fa-circle nav-icon" />
-                    <p>General</p>
+                    <p>Crear</p>
                   </a>
                 </li>
                 <li className="nav-item">

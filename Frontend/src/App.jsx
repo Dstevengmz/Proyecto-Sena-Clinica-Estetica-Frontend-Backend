@@ -20,6 +20,9 @@ import ConsultarCitas from "./components/admin/Citas/Consultarcitas";
 import DetallesCitas from "./components/admin/Citas/DetallesCitas";
 import EditarCitas from "./components/admin/Citas/EditarCitas";
 
+//Procedimientos
+import RegistrarProcedimientos from "./components/admin/Procedimientos/RegistrarProcedimientos";
+
 import Servicios from "./components/pages/Servicios";
 import Control from "./Control";
 
@@ -49,26 +52,15 @@ function App() {
             {/* Administradores */}
             <Route element={<AdminLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route
-                path="/registrarhistorialmedico"
-                element={<HistorialMedico />}
-              />
-              <Route
-                path="/consultarhistorialmedico"
-                element={<ConsultarHistorialMedico />}
-              />
-              <Route
-                path="/DetallesHistorialMedico"
-                element={<DetallesHistorialMedico />}
-              />
-              <Route
-                path="/editarhistoriaclinico/:id"
-                element={<EditarHistorialClinico />}
-              />
+              <Route path="/registrarhistorialmedico" element={<HistorialMedico />}/>
+              <Route path="/consultarhistorialmedico" element={<ConsultarHistorialMedico />}/>
+              <Route path="/DetallesHistorialMedico" element={<DetallesHistorialMedico />}/>
+              <Route path="/editarhistoriaclinico/:id" element={<EditarHistorialClinico />}/>
               <Route path="/registrarcitas" element={<RegistrarCitas />} />
               <Route path="/consultarcitas" element={<ConsultarCitas />} />
               <Route path="/detallescitas" element={<DetallesCitas />} />
               <Route path="/detallescitas/:id" element={<EditarCitas />} />
+              <Route path="/registrarprocedimientos" element={<RegistrarProcedimientos />} />
             </Route>
 
             {/* Principales */}

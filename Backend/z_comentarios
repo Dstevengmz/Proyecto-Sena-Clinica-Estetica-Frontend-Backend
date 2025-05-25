@@ -13,13 +13,18 @@ Comando Modelo Citas
 npx sequelize-cli model:generate --name Citas --attributes id_usuario:integer,id_doctor:integer,id_procedimiento:integer,fecha:date,estado:string,tipo:string,observaciones:text
 
 
-Comando Modelo Procedimiento
-npx sequelize-cli model:generate --name Procedimientos --attributes nombre:string,descripcion:text,precio:decimal,duracion:integer,requiere_evaluacion:boolean,examenes_requeridos:text
+Comando Modelo Procedimientos
+npx sequelize-cli model:generate --name Procedimientos --attributes nombre:string,descripcion:text,precio:float,requiere_evaluacion:boolean,duracion:string,examenes_requeridos:text,imagen:string,categoria:string,recomendaciones_previas:text
+
 
 
 
 Libreria para dependencia de desarrollo
 npm install --save-dev nodemon
+
+Libreria para almacenar imagenes
+npm install multer
+https://medium.com/@diego.coder/subida-de-archivos-con-node-js-express-y-multer-55e99219d754
 
 
 Migrar
