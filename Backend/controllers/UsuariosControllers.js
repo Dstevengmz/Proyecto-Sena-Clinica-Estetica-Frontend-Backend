@@ -39,11 +39,11 @@ class UsuariosController {
   async actualizarUsuario(req, res) {
     try {
         const { id } = req.params;
-        const { nombre,correo,contrasena,rol,telefono,direccion,genero,fecha_nacimiento,ocupacion,estado_civil } = req.body;
+        const { nombre,tipodocumento,numerodocumento,correo,contrasena,rol,telefono,direccion,genero,fecha_nacimiento,ocupacion,estado_civil } = req.body;
         if (isNaN(id)) {
             return res.status(400).json({ error: "ID inválido" });
         }
-        let resultado = await usuariosService.actualizarLosUsuario(id, {nombre,correo,contrasena,rol,telefono,direccion,genero,fecha_nacimiento,ocupacion,estado_civil});
+        let resultado = await usuariosService.actualizarLosUsuario(id, {nombre,tipodocumento,numerodocumento,correo,contrasena,rol,telefono,direccion,genero,fecha_nacimiento,ocupacion,estado_civil});
 
         if (!resultado[0]) {
             return res.status(404).json({ error: "usuario no encontrado" });

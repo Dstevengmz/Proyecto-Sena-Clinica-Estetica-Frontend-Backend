@@ -25,6 +25,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    tipodocumento: {
+      type: DataTypes.ENUM('Cédula de Ciudadanía', 'Pasaporte', 'Documento de Identificación Extranjero','Permiso Especial de Permanencia'),
+      allowNull: false,
+    },
+    numerodocumento: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      unique: true
+    },
     correo: {
       type: DataTypes.STRING,
       allowNull: false,
