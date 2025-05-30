@@ -9,6 +9,8 @@ function Registrar() {
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [nombre, setNombre] = useState("");
+  const [tipodocumento, setTipodocumento] = useState("");
+  const [numerodocumento, setNumerodocumento] = useState("");
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [confirmar, setConfirmar] = useState("");
@@ -30,6 +32,8 @@ function Registrar() {
     try {
       await axios.post(`${API_URL}/apiusuarios/crearusuarios`, {
         nombre,
+        tipodocumento,
+        numerodocumento,
         correo: correo,
         contrasena,
         rol,
@@ -175,8 +179,8 @@ function Registrar() {
           <form
             onSubmit={enviarFormulario}
             className="needs-validation"
-            noValidate
-          >
+            noValidate>
+
             <div className="input-group mb-3">
               <input
                 type="text"
@@ -192,6 +196,22 @@ function Registrar() {
                 </div>
               </div>
             </div>
+
+            <div className="input-group mb-3">
+              <input
+                type="text"
+                className="form-control"
+                required
+                placeholder="Tipo De Documento"
+                value={tipodocumento}
+                onChange={(e) => setTipodocumento(e.target.value)}/>
+              <div className="input-group-append">
+                <div className="input-group-text">
+                  <span className="fa fa-address-card" />
+                </div>
+              </div>
+            </div>
+
             <div className="input-group mb-3">
               <input
                 type="email"
@@ -207,6 +227,7 @@ function Registrar() {
                 </div>
               </div>
             </div>
+
             <div className="input-group mb-3">
               <input
                 type="password"
