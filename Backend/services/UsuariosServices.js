@@ -2,6 +2,7 @@ const { Usuarios } = require("../models");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcrypt');
 const hashaleatorio  = 10;
+const LimpiarNombre = require("../utils/LimpiarNombreUtils");
 class UsuariosService {
 
   async listarLosUsuarios() {
@@ -13,9 +14,12 @@ class UsuariosService {
   }
 
   async crearLosUsuarios(data) {
+    const nombreLimpio = LimpiarNombre(data.nombre);
+    data.nombre = nombreLimpio;
     const hashedPassword = await bcrypt.hash(data.contrasena,hashaleatorio);
     return await Usuarios.create({
       ...data,
+      nombre: nombreLimpio,
       contrasena: hashedPassword,
     });
   }

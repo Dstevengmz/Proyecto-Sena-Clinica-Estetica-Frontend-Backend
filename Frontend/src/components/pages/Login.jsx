@@ -2,6 +2,7 @@ import { Form, Button, Container, Row, Col, Alert } from "react-bootstrap";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Swal from "sweetalert2";
 const API_URL = import.meta.env.VITE_API_URL;
 function Login() {
   const navigate = useNavigate();
@@ -29,16 +30,31 @@ function Login() {
       const { token } = respuesta.data;
       if (token) {
         localStorage.setItem("token", token);
-        alert("Inicio de sesión exitoso");
-        navigate("/dashboard");
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Inicio de sesión exitoso",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1600);
       } else {
-        alert("Token no recibido. Redirigiendo a página de error.");
+        Swal.fire({
+          icon: "warning",
+          title: "Token no recibido",
+          text: "Redirigiendo a página de error.",
+        });
         navigate("/");
       }
     } catch (error) {
       console.log("Error con las credenciales", error);
-      console.error("Error al iniciar sesión:");
-      alert("Correo o Contraseña incorrectos");
+       Swal.fire({
+      icon: "error",
+      title: "Error al iniciar sesión",
+      text: "Correo o contraseña incorrectos",
+    });
     }
   };
   return (
