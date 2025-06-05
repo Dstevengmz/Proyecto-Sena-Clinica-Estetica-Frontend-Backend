@@ -12,7 +12,7 @@ function Menu() {
     <Router>
       <Routes>
         <Route path="/" element={<Inicio />} />
-        <Route path="/iniciarsesion" element={<Layout><Login /></Layout>} />
+        <Route path="/iniciarsesions" element={<Layout><Login /></Layout>} />
         <Route path="/registro" element={<Layout><Registrar /></Layout>} />
         <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
         <Route path="/historialmedico" element={<Layout><HistorialMedico /></Layout>} />
