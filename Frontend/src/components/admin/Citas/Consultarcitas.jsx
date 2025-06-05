@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+// import jwt_decode from "jwt-decode";
+import { jwtDecode } from 'jwt-decode';
 import React, { useState, useEffect } from "react";
 import {  createContext, useContext } from "react";
 export const CitasContext = createContext();
@@ -11,6 +13,18 @@ function Consultarcitas() {
   const [citas, setCitas] = useState([]);
   const {selectedCitas, setSelectedCitas}  = useCitasContext();
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  let rol = null;
+    if (token) {
+      try {
+        const usuario = jwtDecode(token);
+        // const usuario = jwt_decode(token);
+        rol = usuario.rol;
+      } catch (error) {
+        console.error("Error al decodificar el token:", error);
+        rol = null;
+      }
+    }
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -90,6 +104,7 @@ function Consultarcitas() {
                       title="Ver detalles">
                       <i className="fas fa-eye"></i>
                     </a>
+                      {(rol === "doctor" || rol === "asistente") && (
                     <a
                       onClick={() => navigate(`/detallescitas/${citas.id}`)}
                       className="btn btn-sm btn-primary mx-1"
@@ -97,12 +112,15 @@ function Consultarcitas() {
                       title="Editar">
                       <i className="fas fa-pen-square"></i>
                     </a>
+                    )}
+                      {rol === "asistente" && (
                     <a
                       className="btn btn-sm btn-danger mx-1"
                       role="button"
                       title="Eliminar">
                       <i className="fas fa-trash"></i>
                     </a>
+                    )}
                   </div>
                 </td>
                 </tr>

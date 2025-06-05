@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const historialMedicoController = require("../controllers/HistorialMedicoControllers");
-const Seguridad = require("../middleware/Authorization");
+const {authorization,verificarRol} = require("../middleware/Authorization");
 
-router.get("/listarhistorialclinico",Seguridad,historialMedicoController.listarHistorialMedico);
-router.get("/buscarhistorialclinico/:id",Seguridad, historialMedicoController.buscarHistorialMedico);
-router.post("/crearhistorialclinico",Seguridad, historialMedicoController.crearHistorialMedico);
-router.patch("/editarhistorialclinico/:id",Seguridad, historialMedicoController.actualizarHistorialMedico);
-router.delete("/eliminarhistorialclinico/:id",Seguridad, historialMedicoController.eliminarHistorialMedico);
+router.get("/listarhistorialclinico",authorization,historialMedicoController.listarHistorialMedico);
+router.get("/buscarhistorialclinico/:id",authorization, historialMedicoController.buscarHistorialMedico);
+router.post("/crearhistorialclinico",authorization, historialMedicoController.crearHistorialMedico);
+router.patch("/editarhistorialclinico/:id",authorization, historialMedicoController.actualizarHistorialMedico);
+router.delete("/eliminarhistorialclinico/:id",authorization, historialMedicoController.eliminarHistorialMedico);
 
 module.exports = router;

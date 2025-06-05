@@ -220,7 +220,7 @@ function Registrar() {
                   Seleccione Su Rol
                 </option>
                 <option value="usuario">Usuario</option>
-                <option  disabled value="doctor">Doctor</option>
+                <option   value="doctor">Doctor</option>
                 <option disabled value="asistente">Asistente</option>
               </select>
               <div className="input-group-append">

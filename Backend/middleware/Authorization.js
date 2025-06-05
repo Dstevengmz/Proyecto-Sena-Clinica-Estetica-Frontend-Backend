@@ -16,4 +16,14 @@ const authorization = async (req, res, next) => {
   }
 };
 
-module.exports = authorization;
+const verificarRol = (rolesPermitidos) => (req, res, next) => {
+  console.log("Usuario no autorizado:", req.usuario);
+  if (!req.usuario || !rolesPermitidos.includes(req.usuario.rol)) {
+    return res.status(403).json({ mensaje: "Acceso denegado por rol" });
+  }else{
+    console.log("Usuario autorizado:", req.usuario);
+  }
+  next();
+};
+
+module.exports = {authorization,verificarRol,};
