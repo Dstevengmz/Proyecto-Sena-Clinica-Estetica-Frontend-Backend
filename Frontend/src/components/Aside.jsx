@@ -1,11 +1,32 @@
 import React from "react";
 import CerrarSesion from "./pages/CerrarSesion";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 export default function Aside() {
   const navigate = useNavigate();
   const manejarCerrarSesion = (e) => {
     e.preventDefault();
-    CerrarSesion(navigate);
+     Swal.fire({
+      title: "¿Estás seguro de Cerrar Sesión?",
+      text: "¡No podrás revertir esto!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cerrar sesión"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Session Cerrada Correctamente",
+          showConfirmButton: false,
+          timer: 1500
+    }).then(() => {
+          CerrarSesion(navigate);
+        });
+      }
+    });
   };
   return (
     <aside className="main-sidebar sidebar-dark-primary elevation-4">
