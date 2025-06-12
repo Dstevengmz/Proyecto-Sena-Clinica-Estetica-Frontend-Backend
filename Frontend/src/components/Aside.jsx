@@ -1,11 +1,32 @@
 import React from "react";
 import CerrarSesion from "./pages/CerrarSesion";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 export default function Aside() {
   const navigate = useNavigate();
   const manejarCerrarSesion = (e) => {
     e.preventDefault();
-    CerrarSesion(navigate);
+     Swal.fire({
+      title: "¿Estás seguro de Cerrar Sesión?",
+      text: "¡No podrás revertir esto!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cerrar sesión"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Session Cerrada Correctamente",
+          showConfirmButton: false,
+          timer: 1500
+    }).then(() => {
+          CerrarSesion(navigate);
+        });
+      }
+    });
   };
   return (
     <aside className="main-sidebar sidebar-dark-primary elevation-4">
@@ -46,15 +67,7 @@ export default function Aside() {
                 <p>Dashboard</p>
               </a>
             </li>
-            <li className="nav-item">
-              <a href="" className="nav-link" onClick={manejarCerrarSesion}>
-                <i className="nav-icon fas fa-th" />
-                <p>
-                  CerrarSesion
-                  <span className="right badge badge-danger"></span>
-                </p>
-              </a>
-            </li>
+            
             <li className="nav-item">
               <a href="" className="nav-link">
                 <i className="nav-icon fas fa-copy" />
@@ -77,12 +90,6 @@ export default function Aside() {
                     <p>Consultar</p>
                   </a>
                 </li>
-                {/* <li className="nav-item">
-                  <a href="pages/layout/boxed.html" className="nav-link">
-                    <i className="far fa-circle nav-icon" />
-                    <p>Boxed</p>
-                  </a>
-                </li> */}
               </ul>
             </li>
             <li className="nav-item">
@@ -110,17 +117,23 @@ export default function Aside() {
             </li>
             <li className="nav-item">
               <a href="#" className="nav-link">
-                <i className="nav-icon fas fa-tree" />
+                <i className="nav-icon fas fa-bed"/>
                 <p>
-                  UI Elements
+                  Procedimientos
                   <i className="fas fa-angle-left right" />
                 </p>
               </a>
               <ul className="nav nav-treeview">
                 <li className="nav-item">
-                  <a href="pages/UI/general.html" className="nav-link">
+                  <a href="/procedimientos" className="nav-link">
+                    <i className="far fa-list nav-icon" />
+                    <p>Listar</p>
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a href="/registrarprocedimientos" className="nav-link">
                     <i className="far fa-circle nav-icon" />
-                    <p>General</p>
+                    <p>Crear</p>
                   </a>
                 </li>
                 <li className="nav-item">
@@ -232,6 +245,15 @@ export default function Aside() {
               </ul>
             </li>
             <li className="nav-header">EXAMPLES</li>
+            <li className="nav-item">
+              <a href="" className="nav-link" onClick={manejarCerrarSesion}>
+                <i className="nav-icon fas fa-th" />
+                <p>
+                  CerrarSesion
+                  <span className="right badge badge-danger"></span>
+                </p>
+              </a>
+            </li>
             <li className="nav-item">
               <a href="pages/calendar.html" className="nav-link">
                 <i className="nav-icon fas fa-calendar-alt" />
