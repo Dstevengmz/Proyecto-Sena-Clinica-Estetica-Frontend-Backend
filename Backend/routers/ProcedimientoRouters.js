@@ -7,7 +7,7 @@ const upload = require("../middleware/Multer");
 router.get("/listarprocedimiento", ProcedimientoController.listarProcedimientos);
 router.get("/buscarprocedimiento/:id", ProcedimientoController.buscarProcedimientos);
 router.post("/crearprocedimiento",authorization,upload.single("imagen"),ProcedimientoController.crearProcedimientos);
-router.patch("/editarprocedimiento/:id",authorization, ProcedimientoController.actualizarProcedimientos);
+router.patch("/editarprocedimiento/:id",authorization,upload.single("imagen"), ProcedimientoController.actualizarProcedimientos);
 router.delete("/eliminarprocedimiento/:id",authorization, ProcedimientoController.eliminarProcedimientos);
 
 module.exports = router;
