@@ -139,9 +139,9 @@ export default function Aside() {
                   </a>
                 </li>
                 <li className="nav-item">
-                  <a href="pages/UI/icons.html" className="nav-link">
+                  <a href="/consultarprocedimientos" className="nav-link">
                     <i className="far fa-circle nav-icon" />
-                    <p>Icons</p>
+                    <p>Consultar</p>
                   </a>
                 </li>
                 <li className="nav-item">
