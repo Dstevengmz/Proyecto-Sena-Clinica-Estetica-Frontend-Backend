@@ -16,7 +16,6 @@ function Consultarcitas() {
   if (token) {
     try {
       const usuario = jwtDecode(token);
-      // const usuario = jwt_decode(token);
       rol = usuario.rol;
     } catch (error) {
       console.error("Error al decodificar el token:", error);

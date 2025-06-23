@@ -1,13 +1,27 @@
-const { Procedimientos } = require("../models");
+const { Procedimientos,Usuarios } = require("../models");
 
 class ProcedimientosService {
 
   async listarLosProcedimientos() {
-    return await Procedimientos.findAll();
+    return await Procedimientos.findAll(
+      {
+      include: {
+        model: Usuarios,
+        as: 'usuario',
+        attributes: ['nombre', 'correo', 'telefono', 'direccion', 'fecha_nacimiento','genero','rol','ocupacion'] 
+      }
+    }
+    );
   }
 
   async buscarLosProcedimientos(id) {
-    return await Procedimientos.findByPk(id);
+    return await Procedimientos.findByPk(id, {
+        include: {
+          model: Usuarios,
+          as: 'usuario',
+          attributes: ['nombre', 'correo', 'telefono', 'direccion', 'fecha_nacimiento','genero','rol','ocupacion']
+        }
+      });
   }
 
   async crearLosProcedimientos(data) {

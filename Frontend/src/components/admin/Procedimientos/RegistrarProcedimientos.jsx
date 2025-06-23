@@ -1,13 +1,30 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
+
 import axios from "axios";
 import { Form, Button, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_URL;
 
 function RegistrarProcedimiento() {
+  const [usuario, setUsuario] = useState({});
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
+    useEffect(() => {
+      async function obtenerDatosUsuario() {
+        try {
+          const response = await axios.get(`${API_URL}/apiusuarios/perfil`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setUsuario(response.data.usuario);
+        } catch (error) {
+          console.error("Error al obtener datos del usuario", error);
+        }
+      }
+  
+      obtenerDatosUsuario();
+    }, [token]);
+  
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
@@ -33,9 +50,12 @@ const manejarEnvio = async (e) => {
   Object.entries(formData).forEach(([clave, valor]) => {
     datos.append(clave, valor);
   });
+  datos.append("id_usuario", usuario.id);
 
   try {
-    await axios.post(`${API_URL}/apiprocedimientos/crearprocedimiento`, datos, {
+    await axios.post(`${API_URL}/apiprocedimientos/crearprocedimiento`,
+       datos, 
+       {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",

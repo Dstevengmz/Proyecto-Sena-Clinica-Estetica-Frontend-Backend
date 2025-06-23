@@ -1,9 +1,10 @@
-import React from "react";
 import CerrarSesion from "./pages/CerrarSesion";
-import { useNavigate } from "react-router-dom";
+import { usePerfilUsuario } from "../hooks/usePerfilUsuario";
 import Swal from "sweetalert2";
-export default function Aside() {
+import { useNavigate, Link } from "react-router-dom";
+function Aside() {
   const navigate = useNavigate();
+  const { usuario, rol } = usePerfilUsuario();
   const manejarCerrarSesion = (e) => {
     e.preventDefault();
     Swal.fire({
@@ -30,7 +31,7 @@ export default function Aside() {
   };
   return (
     <aside className="main-sidebar sidebar-dark-primary elevation-4">
-      <a href="/dashboard" className="brand-link">
+      <Link to="/dashboard" className="brand-link">
         <img
           src="dist/img/AdminLTELogo.png"
           alt="AdminLTE Logo"
@@ -38,7 +39,7 @@ export default function Aside() {
           style={{ opacity: ".8" }}
         />
         <span className="brand-text font-weight-light">Rejuvenezk</span>
-      </a>
+      </Link>
       <div className="sidebar">
         <div className="user-panel mt-3 pb-3 mb-3 d-flex">
           <div className="image">
@@ -49,9 +50,9 @@ export default function Aside() {
             />
           </div>
           <div className="info">
-            <a href="#" className="d-block">
-              Alexander Pierce
-            </a>
+            <Link href="/dashboard" className="d-block">
+              {usuario?.nombre || "Cargando..."}
+            </Link>
           </div>
         </div>
         <nav className="mt-2">
@@ -61,90 +62,111 @@ export default function Aside() {
             role="menu"
             data-accordion="false"
           >
-            <li className="nav-item menu-open">
-              <a href="/dashboard" className="nav-link active">
-                <i className="nav-icon fas fa-tachometer-alt" />
-                <p>Dashboard</p>
-              </a>
-            </li>
+            <Link to="/dashboard" className="nav-item menu-open nav-link ">
+              <i className="nav-icon fas fa-tachometer-alt" />
+              <p>Dashboard</p>
+            </Link>
+
             <li className="nav-item">
-              <a href="" className="nav-link">
+              <a
+                href="#"
+                className="nav-link"
+                onClick={(e) => e.preventDefault()}
+              >
                 <i className="nav-icon fas fa-copy" />
                 <p>
-                  HistorialClinico
+                  Historial Clínico
                   <i className="fas fa-angle-left right" />
-                  <span className="badge badge-info right"></span>
                 </p>
               </a>
+
               <ul className="nav nav-treeview">
                 <li className="nav-item">
-                  <a href="/registrarhistorialmedico" className="nav-link">
+                  <Link to="/registrarhistorialmedico" className="nav-link">
                     <i className="far fa-circle nav-icon" />
                     <p>Crear</p>
-                  </a>
+                  </Link>
                 </li>
                 <li className="nav-item">
-                  <a href="/consultarhistorialmedico" className="nav-link">
+                  <Link to="/consultarhistorialmedico" className="nav-link">
                     <i className="far fa-circle nav-icon" />
                     <p>Consultar</p>
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </li>
+
             <li className="nav-item">
-              <a href="" className="nav-link">
+              <a
+                href="#"
+                className="nav-link"
+                onClick={(e) => e.preventDefault()}
+              >
                 <i className="nav-icon fas fa-chart-pie" />
                 <p>
                   Registro Citas
                   <i className="right fas fa-angle-left" />
                 </p>
               </a>
+
               <ul className="nav nav-treeview">
                 <li className="nav-item">
-                  <a href="/registrarcitas" className="nav-link">
+                  <Link to="/registrarcitas" className="nav-link">
                     <i className="far fa-circle nav-icon" />
                     <p>Registrar</p>
-                  </a>
+                  </Link>
                 </li>
-                <li className="nav-item">
-                  <a href="/consultarcitas" className="nav-link">
-                    <i className="far fa-circle nav-icon" />
-                    <p>Consultar Citas</p>
-                  </a>
-                </li>
+                {(rol === "doctor" || rol === "asistente") && (
+                  <li id="rFe3" className="nav-item">
+                    <Link to="/consultarcitas" className="nav-link">
+                      <i className="far fa-circle nav-icon" />
+                      <p>Consultar Citas</p>
+                    </Link>
+                  </li>
+                )}
               </ul>
             </li>
+            {(rol === "doctor" || rol === "asistente") && (
+              <li className="nav-item">
+                <a
+                  href="#"
+                  className="nav-link"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  <i className="nav-icon fas fa-chart-pie" />
+                  <p>
+                    Procedimientos
+                    <i className="right fas fa-angle-left" />
+                  </p>
+                </a>
+                <ul className="nav nav-treeview">
+                  <li className="nav-item">
+                    <Link to="/registrarprocedimientos" className="nav-link">
+                      <i className="far fa-circle nav-icon" />
+                      <p>Crear</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/consultarprocedimientos" className="nav-link">
+                      <i className="far fa-circle nav-icon" />
+                      <p>Consultar</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="pages/UI/buttons.html" className="nav-link">
+                      <i className="far fa-circle nav-icon" />
+                      <p>Buttons</p>
+                    </Link>
+                  </li>
+                </ul>
+              </li>
+            )}
             <li className="nav-item">
-              <a href="#" className="nav-link">
-                <i className="nav-icon fas fa-tree" />
-                <p>
-                  Procedimientos
-                  <i className="fas fa-angle-left right" />
-                </p>
-              </a>
-              <ul className="nav nav-treeview">
-                <li className="nav-item">
-                  <a href="/registrarprocedimientos" className="nav-link">
-                    <i className="far fa-circle nav-icon" />
-                    <p>Crear</p>
-                  </a>
-                </li>
-                <li className="nav-item">
-                  <a href="/consultarprocedimientos" className="nav-link">
-                    <i className="far fa-circle nav-icon" />
-                    <p>Consultar</p>
-                  </a>
-                </li>
-                <li className="nav-item">
-                  <a href="pages/UI/buttons.html" className="nav-link">
-                    <i className="far fa-circle nav-icon" />
-                    <p>Buttons</p>
-                  </a>
-                </li>
-              </ul>
-            </li>
-            <li className="nav-item">
-              <a href="#" className="nav-link">
+              <a
+                href="#"
+                className="nav-link"
+                onClick={(e) => e.preventDefault()}
+              >
                 <i className="nav-icon fas fa-edit" />
                 <p>
                   Opciones
@@ -153,17 +175,20 @@ export default function Aside() {
               </a>
               <ul className="nav nav-treeview">
                 <li className="nav-item">
-                  <a href="" className="nav-link" onClick={manejarCerrarSesion}>
+                  <a
+                    href="#"
+                    className="nav-link"
+                    onClick={manejarCerrarSesion}
+                  >
                     <i className="nav-icon fas fa-th" />
                     <p>
-                      CerrarSesion
+                      Cerrar Sesión
                       <span className="right badge badge-danger"></span>
                     </p>
                   </a>
                 </li>
               </ul>
             </li>
-
             {/* <li className="nav-header">MISCELLANEOUS</li> */}
           </ul>
         </nav>
@@ -173,3 +198,4 @@ export default function Aside() {
     </aside>
   );
 }
+export default Aside;
