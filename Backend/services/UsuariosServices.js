@@ -1,8 +1,9 @@
 const { Usuarios } = require("../models");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcrypt');
+const { EnviarCorreo } = require('../assets/corre');
 const hashaleatorio  = 10;
-const LimpiarNombre = require("../utils/LimpiarNombreUtils");
+const LimpiarNombre = require("../assets/LimpiarNombreUtils");
 class UsuariosService {
 
   async listarLosUsuarios() {
@@ -17,11 +18,26 @@ class UsuariosService {
     const nombreLimpio = LimpiarNombre(data.nombre);
     data.nombre = nombreLimpio;
     const hashedPassword = await bcrypt.hash(data.contrasena,hashaleatorio);
-    return await Usuarios.create({
-      ...data,
-      nombre: nombreLimpio,
-      contrasena: hashedPassword,
-    });
+    const nuevoUsuario = await Usuarios.create({
+    ...data,
+    nombre: nombreLimpio,
+    contrasena: hashedPassword,
+  });
+  try{
+    await EnviarCorreo({
+    receipients: data.correo,
+    subject: 'Bienvenido a Clínica Rejuvenezk',
+    message: `
+      <h2>Hola ${nombreLimpio}</h2>
+      <p>Tu registro en <strong>Clínica Rejuvenezk</strong> fue exitoso.</p>
+      <p>Gracias por confiar en nosotros. Te estaremos contactando pronto.</p>
+    `,
+  });
+  }catch (error) {
+      console.error('Error al enviar correo:', error);
+  }
+  return nuevoUsuario;
+    
   }
 
   async  eliminarLosUsuarios(id) {
