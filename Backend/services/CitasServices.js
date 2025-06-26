@@ -1,5 +1,6 @@
 const { Citas, Usuarios } = require("../models");
 const { EnviarCorreo } = require("../assets/corre");
+const { ValidarLaCita } = require("../assets/Validarfecharegistro");
 const { Op } = require("sequelize");
 class HistorialClinicoService {
   async listarLasCitas() {
@@ -55,6 +56,7 @@ class HistorialClinicoService {
   }
 
   async crearLasCitas(data) {
+    ValidarLaCita(data);
     const creacita = await Citas.create(data);
     let usuario;
     let doctor;
@@ -70,7 +72,7 @@ class HistorialClinicoService {
     } catch (e) {
       console.error("Error al encontrar el usuario:", e);
     }
-     try {
+    try {
       await EnviarCorreo({
         receipients: doctor.correo,
         subject: "Cita registrada",
