@@ -16,7 +16,12 @@ npx sequelize-cli model:generate --name Citas --attributes id_usuario:integer,id
 Comando Modelo Procedimientos
 npx sequelize-cli model:generate --name Procedimientos --attributes nombre:string,descripcion:text,precio:float,requiere_evaluacion:boolean,duracion:string,examenes_requeridos:text,imagen:string,categoria:string,recomendaciones_previas:text
 
+Comando para  Ordenes
+npx sequelize-cli model:generate --name Ordenes --attributes id_usuario:integer,fecha_creacion:date,estado:string
 
+Comando para orden de procedimiento
+
+npx sequelize-cli model:generate --name OrdenProcedimiento --attributes id_orden:integer,id_procedimiento:integer
 
 
 Libreria para dependencia de desarrollo

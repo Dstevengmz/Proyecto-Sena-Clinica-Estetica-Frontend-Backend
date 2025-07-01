@@ -2,6 +2,8 @@ const Usuarios = require('./routers/UsuariosRouters');
 const HistorialMedico = require('./routers/HistorialMedicoRouters');
 const Citas = require('./routers/CitasRouters');
 const Procedimientos = require('./routers/ProcedimientoRouters');
+const Ordenes= require('./routers/OrdenesRouters');
+const OrdenProcedimiento= require('./routers/OrdenProcedimientoRouters');
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -25,6 +27,8 @@ app.use('/apiusuarios',Usuarios);
 app.use('/apihistorialmedico',HistorialMedico);
 app.use('/apicitas',Citas);
 app.use('/apiprocedimientos',Procedimientos);
+app.use('/apiordenes',Ordenes);
+app.use('/apiordenprocedimiento',OrdenProcedimiento);
 
 app.listen(puerto, () => {
     console.log(`Servidor corriendo en http://localhost:${puerto}`);

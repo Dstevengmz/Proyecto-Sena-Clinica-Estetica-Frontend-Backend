@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 function Aside() {
   const navigate = useNavigate();
   const { usuario, rol } = usePerfilUsuario();
+  
   const manejarCerrarSesion = (e) => {
     e.preventDefault();
     Swal.fire({

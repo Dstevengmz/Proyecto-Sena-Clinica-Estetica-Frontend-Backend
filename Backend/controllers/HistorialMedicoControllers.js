@@ -14,6 +14,14 @@ class HistorialMedicoController {
       : res.status(404).json({ error: "historialmedico no encontrado" });
   }
 
+  async buscarHistorialMedicoporUsuario(req, res) {
+  const historialmedico = await historialMedicoService.buscarLosHistorialesClinicosPorUsuario(req.params.id);
+  historialmedico
+    ? res.json(historialmedico)
+    : res.status(404).json({ error: "historialmedico no encontrado" });
+}
+
+
   async crearHistorialMedico(req, res) {
     try {
       const nuevoHistorialmedico = await historialMedicoService.crearLosHistorialesClinicos(req.body);

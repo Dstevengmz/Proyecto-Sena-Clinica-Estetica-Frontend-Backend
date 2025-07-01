@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const authorization = async (req, res, next) => {
   const token = req.header("Authorization");
   if (!token) {
-    return res.json({ mensaje: "Acceso denegado, token no proporcionado" });
+    return res.status(401).json({ mensaje: "Acceso denegado, token no proporcionado" });
   } else {
     try {
       const tokenBearer = token.replace("Bearer", "").trim();
@@ -11,7 +11,7 @@ const authorization = async (req, res, next) => {
       req.usuario = respuestaJwT;
       next();
     } catch (error) {
-      return res.json({ mensaje: "Token inválido" });
+      return res.status(401).json({ mensaje: "Token inválido o expirado" });
     }
   }
 };
