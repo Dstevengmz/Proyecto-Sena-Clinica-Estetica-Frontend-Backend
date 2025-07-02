@@ -19,9 +19,11 @@ npx sequelize-cli model:generate --name Procedimientos --attributes nombre:strin
 Comando para  Ordenes
 npx sequelize-cli model:generate --name Ordenes --attributes id_usuario:integer,fecha_creacion:date,estado:string
 
-Comando para orden de procedimiento
-
+Comando para orden_procedimiento
 npx sequelize-cli model:generate --name OrdenProcedimiento --attributes id_orden:integer,id_procedimiento:integer
+
+Comando para carrito
+npx sequelize-cli model:generate --name Carrito --attributes id_usuario:integer,id_procedimiento:integer
 
 
 Libreria para dependencia de desarrollo

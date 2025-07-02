@@ -23,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "id_usuario",
         as: "ordenes",
       });
+      Usuarios.hasMany(models.Carrito, {
+      foreignKey: "id_usuario",
+      as: "carritos"
+    });
     }
   }
   Usuarios.init(

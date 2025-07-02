@@ -1,6 +1,22 @@
-const { Ordenes } = require("../models");
+const { Ordenes, Procedimientos } = require("../models");
 
 class OrdenServices {
+  async listarOrdenesPorUsuario(id_usuario) {
+    try {
+      return await Ordenes.findAll({
+        where: { id_usuario },
+        include: [
+          {
+            model: Procedimientos,
+            through: { attributes: [] },
+          },
+        ],
+      });
+    } catch (e) {
+      console.log("Error al listar órdenes por usuario:", e);
+    }
+  }
+
   async listarLasOrdenes() {
     try {
       return await Ordenes.findAll();
@@ -19,7 +35,12 @@ class OrdenServices {
 
   async crearLasOrdenes(data) {
     try {
-      return await Ordenes.create(data);
+      const { procedimientos, ...datosOrden } = data;
+      const nuevaOrden = await Ordenes.create(datosOrden);
+      if (procedimientos && procedimientos.length > 0) {
+        await nuevaOrden.addProcedimientos(procedimientos);
+      }
+      return nuevaOrden;
     } catch (e) {
       console.log("Error en el servidor al crear la orden:", e);
     }
@@ -32,13 +53,13 @@ class OrdenServices {
       console.log("Error en el servidor al eliminar la orden:", e);
     }
   }
-  
+
   async actualizarLasOrdenes(id, datos) {
     try {
       let actualizado = await Ordenes.update(datos, { where: { id } });
       return actualizado;
     } catch (e) {
-        console.log("Error en el servidor al actualizar la orden:", e);
+      console.log("Error en el servidor al actualizar la orden:", e);
     }
   }
 }

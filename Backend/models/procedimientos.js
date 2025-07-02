@@ -13,6 +13,10 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: "id_orden",
         as: "ordenes",
       });
+      Procedimientos.hasMany(models.Carrito, {
+      foreignKey: "id_procedimiento",
+      as: "carritos"
+    });
     }
   }
   Procedimientos.init(

@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
 
     static associate(models) {
         OrdenProcedimiento.belongsTo(models.Ordenes, {
-        foreignKey: "id_ordenes",
+        foreignKey: "id_orden",
         as: "ordenes",
       });
     }
