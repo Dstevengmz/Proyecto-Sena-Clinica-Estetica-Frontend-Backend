@@ -10,7 +10,7 @@ const cors = require('cors');
 const app = express();
 require('dotenv').config();
 
-const puerto = 2100;
+const puerto = process.env.PORT || 2200;
 
 app.use(
     cors({
