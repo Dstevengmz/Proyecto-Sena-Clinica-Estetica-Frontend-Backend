@@ -12,7 +12,6 @@ class OrdenController {
       res.status(500).json({ error: "Error al obtener las órdenes" });
     }
   }
-
   async listarOrdenes(req, res) {
     const orden = await ordenService.listarLasOrdenes();
     res.json(orden);

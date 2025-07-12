@@ -1,4 +1,7 @@
-const { Ordenes, Procedimientos } = require("../models");
+const {
+  Ordenes,
+  Procedimientos,
+} = require("../models");
 
 class OrdenServices {
   async listarOrdenesPorUsuario(id_usuario) {

@@ -1,4 +1,4 @@
-const { Citas, Usuarios } = require("../models");
+const { Citas, Usuarios, sequelize,Carrito, Ordenes,OrdenProcedimiento} = require("../models");
 const { EnviarCorreo } = require("../assets/corre");
 const { ValidarLaCita } = require("../assets/Validarfecharegistro");
 const { Op } = require("sequelize");
@@ -28,6 +28,39 @@ class HistorialClinicoService {
       ],
     });
   }
+    async crearOrdenDesdeCarrito(id_usuario) {
+    try {
+      return await sequelize.transaction(async (t) => {
+        const nuevaOrden = await Ordenes.create(
+          {
+            id_usuario,
+            fecha_creacion: new Date(),
+            estado: "pendiente",
+          },
+          { transaction: t }
+        );
+        const carrito = await Carrito.findAll({
+          where: { id_usuario },
+          transaction: t,
+        });
+        console.log("Carrito encontrado:", carrito);
+        if (carrito.length === 0) {
+          throw new Error("El carrito está vacío.");
+        }
+        const registros = carrito.map((item) => ({
+          id_orden: nuevaOrden.id,
+          id_procedimiento: item.id_procedimiento,
+        }));
+        console.log("Registros a insertar en OrdenProcedimiento:", registros);
+        await OrdenProcedimiento.bulkCreate(registros, { transaction: t });
+        await Carrito.destroy({ where: { id_usuario }, transaction: t });
+        return nuevaOrden;
+      });
+    } catch (e) {
+      console.log("Error al crear orden desde carrito:", e);
+    }
+  }
+
 
   async buscarLasCitas(id) {
     return await Citas.findByPk(id, {
