@@ -25,6 +25,7 @@ const authorization = async (req, res, next) => {
 const verificarRol = (rolesPermitidos) => (req, res, next) => {
   console.log("Usuario no autorizado:", req.usuario);
   if (!req.usuario || !rolesPermitidos.includes(req.usuario.rol)) {
+    console.log("no tienes acceso para esta parte ")
     return res.status(403).json({ mensaje: "Acceso denegado por rol" });
   } else {
     console.log("Usuario autorizado:", req.usuario);
