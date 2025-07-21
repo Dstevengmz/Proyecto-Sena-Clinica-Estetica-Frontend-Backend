@@ -24,10 +24,12 @@ class HistorialMedicoController {
       ? res.json(historialmedico)
       : res.status(404).json({ error: "historialmedico no encontrado" });
   }
+
+
+
   async miHistorialMedico(req, res) {
   const { id } = req.params;
   const userIdFromToken = req.usuario.id;
-
   if (parseInt(id) !== parseInt(userIdFromToken)) {
     return res.status(403).json({
       error: "Acceso denegado: No tienes permiso para acceder a este historial médico"
@@ -46,6 +48,9 @@ class HistorialMedicoController {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 }
+
+
+
   async crearHistorialMedico(req, res) {
     try {
       const nuevoHistorialmedico =

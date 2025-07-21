@@ -1,7 +1,6 @@
-  const usuariosService = require("../services/UsuariosServices");
+const usuariosService = require("../services/UsuariosServices");
 
 class UsuariosController {
-
   async listarUsuarios(req, res) {
     const usuarios = await usuariosService.listarLosUsuarios();
     res.json(usuarios);
@@ -21,39 +20,69 @@ class UsuariosController {
     } catch (error) {
       console.error("Error al crear usuario:", error);
       res.status(500).json({
-        message: "Hubo un error al crear el usuario",error: error.message,});
+        message: "Hubo un error al crear el usuario",
+        error: error.message,
+      });
     }
   }
 
   async perfilUsuario(req, res) {
     const id = req.usuario.id;
-  
+
     const usuario = await usuariosService.buscarLosUsuarios(id);
     if (!usuario) {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
-  
+
     res.json({ usuario });
   }
 
   async actualizarUsuario(req, res) {
     try {
-        const { id } = req.params;
-        const { nombre,tipodocumento,numerodocumento,correo,contrasena,rol,telefono,direccion,genero,fecha_nacimiento,ocupacion,estado_civil } = req.body;
-        if (isNaN(id)) {
-            return res.status(400).json({ error: "ID inválido" });
-        }
-        let resultado = await usuariosService.actualizarLosUsuario(id, {nombre,tipodocumento,numerodocumento,correo,contrasena,rol,telefono,direccion,genero,fecha_nacimiento,ocupacion,estado_civil});
+      const { id } = req.params;
+      const {
+        nombre,
+        estado,
+        tipodocumento,
+        numerodocumento,
+        correo,
+        contrasena,
+        rol,
+        telefono,
+        direccion,
+        genero,
+        fecha_nacimiento,
+        ocupacion,
+        estado_civil,
+      } = req.body;
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "ID inválido" });
+      }
+      let resultado = await usuariosService.actualizarLosUsuario(id, {
+        nombre,
+        estado,
+        tipodocumento,
+        numerodocumento,
+        correo,
+        contrasena,
+        rol,
+        telefono,
+        direccion,
+        genero,
+        fecha_nacimiento,
+        ocupacion,
+        estado_civil,
+      });
 
-        if (!resultado[0]) {
-            return res.status(404).json({ error: "usuario no encontrado" });
-        }
+      if (!resultado[0]) {
+        return res.status(404).json({ error: "usuario no encontrado" });
+      }
 
-        res.json({ mensaje: "usuario actualizado correctamente" });
+      res.json({ mensaje: "usuario actualizado correctamente" });
     } catch (e) {
-        res.status(500).json({ error: "Error en el servidor al actualizar el usuario" });
+      res.status(500).json({ error: "Error en el servidor al actualizar el usuario" });
     }
-}
+  }
 
   async eliminarUsuarios(req, res) {
     await usuariosService.eliminarLosUsuarios(req.params.id);
@@ -67,6 +96,25 @@ class UsuariosController {
       return res.status(401).json({ mensaje: resultado.error });
     }
     res.json(resultado);
+  }
+
+  async activacionUsario(req, res) {
+    try {
+      const { id } = req.params;
+      const { estado } = req.body;
+          if (typeof estado !== 'boolean') {
+      return res.status(400).json({ mensaje: "El estado debe ser un valor booleano (true o false)." });
+    }
+      const resultado = await usuariosService.activarUsuario(id, estado);
+      if (resultado.error) {
+        return res.status(401).json({ mensaje: resultado.error });
+      }
+      res.json(resultado);
+      console.log("Estado de usuario actualizado:", resultado.usuario.estado);
+    } catch (e) {
+      console.error("Error al actualizar el estado:", e);
+      res.status(500).json({ mensaje: "Error al actualizar el usuario" });
+    }
   }
 }
 

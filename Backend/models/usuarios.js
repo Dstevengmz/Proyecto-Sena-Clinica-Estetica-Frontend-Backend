@@ -24,9 +24,9 @@ module.exports = (sequelize, DataTypes) => {
         as: "ordenes",
       });
       Usuarios.hasMany(models.Carrito, {
-      foreignKey: "id_usuario",
-      as: "carritos"
-    });
+        foreignKey: "id_usuario",
+        as: "carritos",
+      });
     }
   }
   Usuarios.init(
@@ -34,6 +34,11 @@ module.exports = (sequelize, DataTypes) => {
       nombre: {
         type: DataTypes.STRING,
         allowNull: false,
+      },
+      estado: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
       tipodocumento: {
         type: DataTypes.ENUM(
