@@ -7,7 +7,16 @@ const OrdenProcedimiento= require('./routers/OrdenProcedimientoRouters');
 const Carrito= require('./routers/CarritoRouters');
 const express = require('express');
 const cors = require('cors');
+const socketIO = require("socket.io");
 const app = express();
+const http = require("http");
+const configurarSockets = require('./socket'); 
+const server = http.createServer(app);
+const io = socketIO(server, { cors: { origin: "*" } });
+global.io = io;
+configurarSockets(io);
+
+require('./config/redis'); 
 require('dotenv').config();
 
 const puerto = process.env.PORT || 2200;
@@ -32,6 +41,6 @@ app.use('/apiordenes',Ordenes);
 app.use('/apiordenprocedimiento',OrdenProcedimiento);
 app.use('/apicarrito',Carrito);
 
-app.listen(puerto, () => {
+server.listen(puerto, () => {
     console.log(`Servidor corriendo en http://localhost:${puerto}`);
 });

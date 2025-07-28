@@ -1,7 +1,15 @@
-const { Citas, Usuarios, sequelize,Carrito, Ordenes,OrdenProcedimiento} = require("../models");
+const {
+  Citas,
+  Usuarios,
+  sequelize,
+  Carrito,
+  Ordenes,
+  OrdenProcedimiento,
+} = require("../models");
 const { EnviarCorreo } = require("../assets/corre");
 const { ValidarLaCita } = require("../assets/Validarfecharegistro");
 const { Op } = require("sequelize");
+const redis = require("../config/redis");
 class HistorialClinicoService {
   async listarLasCitas() {
     return await Citas.findAll({
@@ -28,7 +36,7 @@ class HistorialClinicoService {
       ],
     });
   }
-    async crearOrdenDesdeCarrito(id_usuario) {
+  async crearOrdenDesdeCarrito(id_usuario) {
     try {
       return await sequelize.transaction(async (t) => {
         const nuevaOrden = await Ordenes.create(
@@ -60,7 +68,6 @@ class HistorialClinicoService {
       console.log("Error al crear orden desde carrito:", e);
     }
   }
-
 
   async buscarLasCitas(id) {
     return await Citas.findByPk(id, {
@@ -135,6 +142,21 @@ class HistorialClinicoService {
     } catch (error) {
       console.error("Error al enviar correo:", error);
     }
+    try {
+      await this.guardarYEmitirNotificacion(global.io, data.id_doctor, {
+        mensaje: `📅 Nueva cita con ${usuario.nombre} para el ${data.fecha}`,
+        fecha: new Date().toISOString(),
+        tipo: "cita",
+        citaId: creacita.id,
+        paciente: usuario.nombre,
+        fechaCita: data.fecha,
+        tipoCita: data.tipo,
+        leida: false  
+      });
+      console.log("Notificación emitida correctamente");
+    } catch (error) {
+      console.error("Error al emitir notificación:", error);
+    }
     return creacita;
   }
 
@@ -177,6 +199,16 @@ class HistorialClinicoService {
       },
       order: [["fecha", "ASC"]],
     });
+  }
+
+  async guardarYEmitirNotificacion(io, doctorId, notificacion) {
+    const clave = `notificaciones:doctor:${doctorId}`;
+    // Guardar en Redis
+    await redis.lPush(clave, JSON.stringify(notificacion));
+    await redis.lTrim(clave, 0, 20);
+    // Emitir en tiempo real
+    io.to(`doctor_${doctorId}`).emit("nuevaNotificacion", notificacion);
+    console.log(`Emitido a doctor_${doctorId}:`, notificacion);
   }
 }
 

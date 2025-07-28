@@ -1,5 +1,8 @@
 const usuariosService = require("../services/UsuariosServices");
-
+const {
+  registrarIntentoFallido,
+  limpiarIntentos,
+} = require("../middleware/intentosfallidos");
 class UsuariosController {
   async listarUsuarios(req, res) {
     const usuarios = await usuariosService.listarLosUsuarios();
@@ -80,7 +83,9 @@ class UsuariosController {
 
       res.json({ mensaje: "usuario actualizado correctamente" });
     } catch (e) {
-      res.status(500).json({ error: "Error en el servidor al actualizar el usuario" });
+      res
+        .status(500)
+        .json({ error: "Error en el servidor al actualizar el usuario" });
     }
   }
 
@@ -91,20 +96,34 @@ class UsuariosController {
 
   async iniciarSesion(req, res) {
     const { correo, contrasena } = req.body;
-    const resultado = await usuariosService.iniciarSesion(correo, contrasena);
-    if (resultado.error) {
-      return res.status(401).json({ mensaje: resultado.error });
+    try {
+      const resultado = await usuariosService.iniciarSesion(correo, contrasena);
+      if (resultado.error) {
+        console.log("Error al iniciar sesión:", resultado.error);
+        registrarIntentoFallido(correo);
+        return res.status(401).json({ mensaje: resultado.error });
+      }
+
+      limpiarIntentos(correo);
+      console.log("Inicio de sesión exitoso:", resultado);
+      res.json(resultado);
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error);
+      res.status(500).json({ mensaje: "Error al iniciar sesión" });
     }
-    res.json(resultado);
   }
 
   async activacionUsario(req, res) {
     try {
       const { id } = req.params;
       const { estado } = req.body;
-          if (typeof estado !== 'boolean') {
-      return res.status(400).json({ mensaje: "El estado debe ser un valor booleano (true o false)." });
-    }
+      if (typeof estado !== "boolean") {
+        return res
+          .status(400)
+          .json({
+            mensaje: "El estado debe ser un valor booleano (true o false).",
+          });
+      }
       const resultado = await usuariosService.activarUsuario(id, estado);
       if (resultado.error) {
         return res.status(401).json({ mensaje: resultado.error });
@@ -114,6 +133,81 @@ class UsuariosController {
     } catch (e) {
       console.error("Error al actualizar el estado:", e);
       res.status(500).json({ mensaje: "Error al actualizar el usuario" });
+    }
+  }
+
+  async obtenerNotificaciones(req, res) {
+    try {
+      const { id } = req.params;
+      const notificaciones = await usuariosService.obtenerNotificacionesDoctor(id);
+      res.json(notificaciones);
+    } catch (error) {
+      console.error("Error al obtener notificaciones:", error);
+      res.status(500).json({ error: "Error al obtener notificaciones" });
+    }
+  }
+
+  async marcarNotificacionComoLeida(req, res) {
+    try {
+      const { id } = req.params;
+      const { index } = req.body;
+      const resultado = await usuariosService.marcarNotificacionComoLeida(id, index);
+      
+      if (resultado.success) {
+        res.json({ message: "Notificación marcada como leída" });
+      } else {
+        res.status(400).json({ error: resultado.error });
+      }
+    } catch (error) {
+      console.error("Error al marcar notificación como leída:", error);
+      res.status(500).json({ error: "Error al marcar notificación como leída" });
+    }
+  }
+
+  async marcarTodasNotificacionesComoLeidas(req, res) {
+    try {
+      const { id } = req.params;
+      const resultado = await usuariosService.marcarTodasNotificacionesComoLeidas(id);
+      
+      if (resultado.success) {
+        res.json({ message: "Todas las notificaciones marcadas como leídas" });
+      } else {
+        res.status(400).json({ error: resultado.error });
+      }
+    } catch (error) {
+      console.error("Error al marcar todas las notificaciones como leídas:", error);
+      res.status(500).json({ error: "Error al marcar todas las notificaciones como leídas" });
+    }
+  }
+
+  async archivarNotificacionesLeidas(req, res) {
+    try {
+      const { id } = req.params;
+      const resultado = await usuariosService.archivarNotificacionesLeidas(id);
+      
+      if (resultado.success) {
+        res.json({ 
+          message: "Notificaciones leídas archivadas correctamente",
+          archivadas: resultado.archivadas,
+          activas: resultado.activas
+        });
+      } else {
+        res.status(400).json({ error: resultado.error });
+      }
+    } catch (error) {
+      console.error("Error al archivar notificaciones:", error);
+      res.status(500).json({ error: "Error al archivar notificaciones" });
+    }
+  }
+
+  async obtenerHistorialNotificaciones(req, res) {
+    try {
+      const { id } = req.params;
+      const historial = await usuariosService.obtenerHistorialNotificaciones(id);
+      res.json(historial);
+    } catch (error) {
+      console.error("Error al obtener historial de notificaciones:", error);
+      res.status(500).json({ error: "Error al obtener historial de notificaciones" });
     }
   }
 }

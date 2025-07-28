@@ -44,6 +44,14 @@ Instalar librerias
 npm install i
 
 
+instalar redis
+npm i redis
+
+instalar paquete saber el tiempo
+npm i response-time
+
+instalar socket.io backend 
+npm install socket.io
 Darwin
 Comandos Implementados Frontend
 Crar proyecto Frontend React vite
@@ -69,3 +77,6 @@ npm install axios
 
 Pagina de Emojin copiar y pegar
 https://emojiterra.com/es/emojis/cuadrado-es/
+
+Instalar socket cliente
+npm install socket.io-client
