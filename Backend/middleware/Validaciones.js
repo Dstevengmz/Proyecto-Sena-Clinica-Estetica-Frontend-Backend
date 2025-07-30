@@ -11,7 +11,7 @@ const validarUsuario = [
 
   body("numerodocumento")
     .notEmpty().withMessage("El número de documento es obligatorio")
-    .isLength({ min: 5 }).withMessage("Debe tener al menos 5 caracteres")
+    .isLength({ min: 7, max: 10 }).withMessage("El número de documento debe tener entre 7 y 10 caracteres")
     .matches(/^\d+$/).withMessage("El número de documento debe contener solo dígitos"),
 
   body("correo")
@@ -31,6 +31,10 @@ const validarUsuario = [
 
   body("genero")
     .notEmpty().withMessage("Debe seleccionar un género"),
+
+  body("terminos_condiciones")
+    .isBoolean().withMessage("Los términos y condiciones deben ser un valor booleano")
+    .equals("true").withMessage("Debe aceptar los términos y condiciones"),
 
     (req, res, next) => {
     const errores = validationResult(req);

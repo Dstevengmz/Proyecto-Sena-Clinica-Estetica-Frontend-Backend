@@ -50,7 +50,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       numerodocumento: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         allowNull: false,
         unique: true,
       },
@@ -90,6 +90,11 @@ module.exports = (sequelize, DataTypes) => {
       estado_civil: {
         type: DataTypes.STRING,
       },
+        terminos_condiciones: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+        },
     },
     {
       sequelize,

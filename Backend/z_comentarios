@@ -2,7 +2,7 @@ Darwin
 * Comandos Implementados Backend
 
 Comando Modelo Usuario
-npx sequelize-cli model:generate --name Usuarios --attributes nombre:string,estado:boolean,email:string,contrasena:string,rol:string,telefono:integer,direccion:string,fecha_registro:date,genero:string,fecha_nacimiento:date,ocupacion:string,estado_civil:string
+npx sequelize-cli model:generate --name Usuarios --attributes nombre:string,estado:boolean,email:string,contrasena:string,rol:string,telefono:integer,direccion:string,fecha_registro:date,genero:string,fecha_nacimiento:date,ocupacion:string,estado_civil:string,terminos_condiciones:Boolean
 
 
 Comando Modelo Historial Clinico
@@ -46,6 +46,9 @@ npm install i
 
 instalar redis
 npm i redis
+
+correr redis en docker
+docker compose up
 
 instalar paquete saber el tiempo
 npm i response-time

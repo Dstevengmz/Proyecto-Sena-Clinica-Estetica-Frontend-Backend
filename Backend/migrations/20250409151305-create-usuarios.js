@@ -27,7 +27,7 @@ module.exports = {
         allowNull: false,
       },
       numerodocumento: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         unique: true,
         allowNull: false,
       },
@@ -64,6 +64,11 @@ module.exports = {
       },
       estado_civil: {
         type: Sequelize.STRING,
+      },
+      terminos_condiciones: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
       createdAt: {
         allowNull: false,
