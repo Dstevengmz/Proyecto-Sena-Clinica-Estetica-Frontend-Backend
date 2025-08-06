@@ -2,8 +2,19 @@ const citasService = require("../services/CitasServices");
 
 class CitasControllers {
   async listarCitas(req, res) {
-    const citas = await citasService.listarLasCitas();
-    res.json(citas);
+    try {
+      // Si es doctor, solo ve sus propias citas
+      // Si es asistente, ve todas las citas
+      const doctorId = req.usuario.rol === "doctor" ? req.usuario.id : null;
+      const citas = await citasService.listarLasCitas(doctorId);
+      res.json(citas);
+    } catch (error) {
+      console.error("Error al listar citas:", error);
+      res.status(500).json({ 
+        error: "Error al obtener las citas",
+        message: error.message 
+      });
+    }
   }
 
   async buscarCitas(req, res) {
@@ -97,6 +108,58 @@ class CitasControllers {
     }
     console.log("Fecha recibida:", fecha);
   }
-}
+  
+async citasPorDia(req, res) {
+    const { doctorId } = req.params;  // Recibir doctorId de la URL
+    const { fecha } = req.query;      // Recibir la fecha de la consulta (ej: 2025-08-05)
 
+    try {
+      // Llamar al servicio para obtener las citas del doctor en el día solicitado
+      const citas = await citasService.obtenerCitasPorDia(doctorId, fecha);
+
+      if (citas.length > 0) {
+        res.json(citas);
+      } else {
+        res.status(404).json({ message: "No hay citas para este día." });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  async citasPorRango(req, res) {
+    const { doctorId } = req.params;
+    const { desde, hasta } = req.query; 
+
+    try {
+      const citas = await citasService.obtenerCitasPorRango(doctorId, desde, hasta);
+
+      if (citas.length > 0) {
+        res.json(citas);
+      } else {
+        res.status(404).json({ message: "No hay citas en este rango de fechas." });
+      }
+    } catch (error) {
+      console.error("Error al obtener citas por rango:", error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+  async citasPorTipo(req, res) {
+    const { doctorId } = req.params;
+    const { tipo } = req.query;
+    const { fecha } = req.query;
+
+    try {
+      const citas = await citasService.obtenerCitasPorTipo(doctorId, tipo,fecha);
+
+      if (citas.length > 0) {
+        res.json(citas);
+      } else {
+        res.status(404).json({ message: `No hay citas de tipo ${tipo}.` });
+      }
+    } catch (error) {
+      console.error("Error al obtener citas por tipo:", error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+}
 module.exports = new CitasControllers();

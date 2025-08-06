@@ -20,6 +20,7 @@
     "express-validator": "^7.2.1",
     "i": "^0.3.7",
     "jsonwebtoken": "^9.0.2",
+    "moment-timezone": "^0.6.0",
     "multer": "^2.0.0",
     "mysql2": "^3.14.0",
     "nodemailer": "^7.0.3",

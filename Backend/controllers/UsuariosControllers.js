@@ -142,8 +142,18 @@ class UsuariosController {
       const notificaciones = await usuariosService.obtenerNotificacionesDoctor(id);
       res.json(notificaciones);
     } catch (error) {
-      console.error("Error al obtener notificaciones:", error);
-      res.status(500).json({ error: "Error al obtener notificaciones" });
+      console.error("Error al obtener notificaciones del doctor:", error);
+      res.status(500).json({ error: "Error al obtener notificaciones del doctor" });
+    }
+  }
+  async obtenerNotificacionesUsuario(req,res){
+    try {
+      const { id } = req.params;
+      const notificaciones = await usuariosService.obtenerNotificacionesPorUsuario(id);
+      res.json(notificaciones);
+    } catch (error) {
+      console.error("Error al obtener notificaciones del usuario:", error);
+      res.status(500).json({ error: "Error al obtener notificaciones del usuario" });
     }
   }
 
@@ -207,6 +217,71 @@ class UsuariosController {
       res.json(historial);
     } catch (error) {
       console.error("Error al obtener historial de notificaciones:", error);
+      res.status(500).json({ error: "Error al obtener historial de notificaciones" });
+    }
+  }
+
+  // Métodos para manejar notificaciones de usuarios
+  async marcarNotificacionUsuarioComoLeida(req, res) {
+    try {
+      const { id } = req.params;
+      const { index } = req.body;
+      const resultado = await usuariosService.marcarNotificacionUsuarioComoLeida(id, index);
+      
+      if (resultado.success) {
+        res.json({ message: "Notificación de usuario marcada como leída" });
+      } else {
+        res.status(400).json({ error: resultado.error });
+      }
+    } catch (error) {
+      console.error("Error al marcar notificación de usuario como leída:", error);
+      res.status(500).json({ error: "Error al marcar notificación como leída" });
+    }
+  }
+
+  async marcarTodasNotificacionesUsuarioComoLeidas(req, res) {
+    try {
+      const { id } = req.params;
+      const resultado = await usuariosService.marcarTodasNotificacionesUsuarioComoLeidas(id);
+      
+      if (resultado.success) {
+        res.json({ message: "Todas las notificaciones de usuario marcadas como leídas" });
+      } else {
+        res.status(400).json({ error: resultado.error });
+      }
+    } catch (error) {
+      console.error("Error al marcar todas las notificaciones de usuario como leídas:", error);
+      res.status(500).json({ error: "Error al marcar todas las notificaciones como leídas" });
+    }
+  }
+
+  async archivarNotificacionesLeidasUsuario(req, res) {
+    try {
+      const { id } = req.params;
+      const resultado = await usuariosService.archivarNotificacionesLeidasUsuario(id);
+      
+      if (resultado.success) {
+        res.json({ 
+          message: "Notificaciones leídas de usuario archivadas correctamente",
+          archivadas: resultado.archivadas,
+          activas: resultado.activas
+        });
+      } else {
+        res.status(400).json({ error: resultado.error });
+      }
+    } catch (error) {
+      console.error("Error al archivar notificaciones de usuario:", error);
+      res.status(500).json({ error: "Error al archivar notificaciones" });
+    }
+  }
+
+  async obtenerHistorialNotificacionesUsuario(req, res) {
+    try {
+      const { id } = req.params;
+      const historial = await usuariosService.obtenerHistorialNotificacionesUsuario(id);
+      res.json(historial);
+    } catch (error) {
+      console.error("Error al obtener historial de notificaciones de usuario:", error);
       res.status(500).json({ error: "Error al obtener historial de notificaciones" });
     }
   }

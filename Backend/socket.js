@@ -6,6 +6,11 @@ function configurarSockets(io) {
       socket.join(`doctor_${doctorId}`);
       console.log(`Doctor ${doctorId} unido a su sala`);
     });
+    socket.on('registrarPaciente', (pacienteId) => {
+      socket.join(`paciente_${pacienteId}`);
+      console.log(`Paciente ${pacienteId} unido a su sala`);
+    }
+    );
 
     socket.on('disconnect', () => {
       console.log('Socket desconectado');

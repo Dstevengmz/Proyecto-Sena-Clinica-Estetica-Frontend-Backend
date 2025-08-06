@@ -10,9 +10,13 @@ const { EnviarCorreo } = require("../assets/corre");
 const { ValidarLaCita } = require("../assets/Validarfecharegistro");
 const { Op } = require("sequelize");
 const redis = require("../config/redis");
+const moment = require("moment-timezone");
 class HistorialClinicoService {
-  async listarLasCitas() {
+  async listarLasCitas(doctorId = null) {
+    const whereCondition = doctorId ? { id_doctor: doctorId } : {};
+    
     return await Citas.findAll({
+      where: whereCondition, 
       include: [
         {
           model: Usuarios,
@@ -34,6 +38,7 @@ class HistorialClinicoService {
           attributes: ["nombre"],
         },
       ],
+      order: [["id", "ASC"] ], 
     });
   }
   async crearOrdenDesdeCarrito(id_usuario) {
@@ -151,11 +156,27 @@ class HistorialClinicoService {
         paciente: usuario.nombre,
         fechaCita: data.fecha,
         tipoCita: data.tipo,
-        leida: false  
+        leida: false,
       });
       console.log("Notificación emitida correctamente");
     } catch (error) {
       console.error("Error al emitir notificación:", error);
+    }
+
+    // Enviar notificación al usuario/paciente
+    try {
+      await this.guardarYEmitirNotificacionUsuario(global.io, data.id_usuario, {
+        mensaje: `📅 Tu cita ha sido confirmada para el ${data.fecha}`,
+        fecha: new Date().toISOString(),
+        tipo: "confirmacion_cita",
+        citaId: creacita.id,
+        fechaCita: data.fecha,
+        tipoCita: data.tipo,
+        leida: false,
+      });
+      console.log("Notificación enviada al usuario correctamente");
+    } catch (error) {
+      console.error("Error al enviar notificación al usuario:", error);
     }
     return creacita;
   }
@@ -210,6 +231,105 @@ class HistorialClinicoService {
     io.to(`doctor_${doctorId}`).emit("nuevaNotificacion", notificacion);
     console.log(`Emitido a doctor_${doctorId}:`, notificacion);
   }
-}
 
+  async guardarYEmitirNotificacionUsuario(io, usuarioId, notificacion) {
+    const clave = `notificaciones:usuario:${usuarioId}`;
+    // Guardar en Redis
+    await redis.lPush(clave, JSON.stringify(notificacion));
+    await redis.lTrim(clave, 0, 20);
+    // Emitir en tiempo real
+    io.to(`paciente_${usuarioId}`).emit("nuevaNotificacion", notificacion);
+    console.log(`Emitido a paciente_${usuarioId}:`, notificacion);
+  }
+
+  async obtenerCitasPorDia(doctorId, fecha) {
+    try {
+      // Validar la fecha antes de usarla
+      if (!moment(fecha, "YYYY-MM-DD", true).isValid()) {
+        throw new Error("Fecha no válida");
+      }
+      // Usamos moment-timezone para asegurarnos de que las fechas sean en la zona horaria correcta (Bogotá)
+      const FechaInicio = moment
+        .tz(`${fecha}T00:00:00`, "America/Bogota")
+        .toDate();
+      const FechaFin = moment
+        .tz(`${fecha}T23:59:59`, "America/Bogota")
+        .toDate();
+
+      console.log("Start Date:", FechaInicio); // Verificar en consola
+      console.log("End Date:", FechaFin); // Verificar en consola
+
+      // Realizamos la consulta con las fechas ajustadas y solo las citas del doctor
+      return await Citas.findAll({
+        where: {
+          id_doctor: doctorId, // Filtramos por el ID del doctor
+          fecha: {
+            [Op.gte]: FechaInicio, // Mayor o igual al inicio del día
+            [Op.lte]: FechaFin, // Menor o igual al final del día
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error al obtener citas por día:", error);
+      throw new Error("Error al obtener citas por día");
+    }
+  }
+  async obtenerCitasPorRango(doctorId, desde, hasta) {
+    try {
+      // Validar si las fechas son válidas
+      if (
+        !moment(desde, "YYYY-MM-DD", true).isValid() ||
+        !moment(hasta, "YYYY-MM-DD", true).isValid()
+      ) {
+        throw new Error("Fechas no válidas");
+      }
+
+      // Convertir las fechas a la zona horaria de Bogotá (o la que necesites)
+      const RangoInicio = moment
+        .tz(`${desde}T00:00:00`, "America/Bogota")
+        .toDate();
+      const RangoFin = moment
+        .tz(`${hasta}T23:59:59`, "America/Bogota")
+        .toDate();
+
+      console.log("Start Date:", RangoInicio); // Verificar la fecha de inicio
+      console.log("End Date:", RangoFin); // Verificar la fecha de fin
+
+      // Realizar la consulta filtrada por doctor y el rango de fechas
+      return await Citas.findAll({
+        where: {
+          id_doctor: doctorId, // Filtrar por el ID del doctor
+          fecha: {
+            [Op.between]: [RangoInicio, RangoFin], // Filtrar por el rango de fechas
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error al obtener citas por rango de fechas:", error);
+      throw new Error("Error al obtener citas por rango de fechas");
+    }
+  }
+async obtenerCitasPorTipo(doctorId, tipo, fecha) {
+  try {
+    // Usamos moment para verificar si la fecha es válida
+    const startOfDay = moment.tz(`${fecha}T00:00:00`, 'America/Bogota').toDate();
+    const endOfDay = moment.tz(`${fecha}T23:59:59`, 'America/Bogota').toDate();
+
+    // Realizamos la consulta, filtrando por tipo, doctor y fecha
+    return await Citas.findAll({
+      where: {
+        id_doctor: doctorId,
+        tipo: tipo,
+        fecha: {
+          [Op.gte]: startOfDay,
+          [Op.lte]: endOfDay,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error al obtener citas por tipo:", error);
+    throw new Error("Error al obtener citas por tipo");
+  }
+}
+}
 module.exports = new HistorialClinicoService();

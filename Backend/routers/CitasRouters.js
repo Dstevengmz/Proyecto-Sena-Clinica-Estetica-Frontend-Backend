@@ -10,6 +10,13 @@ router.patch("/editarcitas/:id",authorization,verificarRol(["doctor", "asistente
 router.delete("/eliminarcitas/:id",authorization, CitaController.eliminarCitas);
 router.get('/horarios/:fecha',authorization, CitaController.obtenerHorariosOcupados);
 router.post("/crearordendesdecita", authorization, CitaController.crearOrdenDesdeCarrito);
+// Ruta para consultar citas por dia doctor
+router.get('/citas/dia/:doctorId', CitaController.citasPorDia);
+// Ruta para consultar citas por rango de fechas
+router.get("/citas/rango/:doctorId", CitaController.citasPorRango);
+// Ruta para consultar citas por tipo
+router.get("/citas/tipo/:doctorId", CitaController.citasPorTipo);
+
 
 
 module.exports = router;
