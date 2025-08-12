@@ -89,3 +89,10 @@ https://emojiterra.com/es/emojis/cuadrado-es/
 
 # Instalar socket cliente
 npm install socket.io-client
+
+
+# ver log en tiempo real
+heroku logs --tail --app clinicaestetica
+
+# Ver variables globales
+heroku config --app clinicaestetica
