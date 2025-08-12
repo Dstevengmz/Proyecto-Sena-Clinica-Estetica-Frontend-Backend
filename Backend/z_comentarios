@@ -1,59 +1,65 @@
 Darwin
-* Comandos Implementados Backend
+# Comandos Implementados Backend
 
-Comando Modelo Usuario
+# Comando Modelo Usuario
 npx sequelize-cli model:generate --name Usuarios --attributes nombre:string,estado:boolean,email:string,contrasena:string,rol:string,telefono:integer,direccion:string,fecha_registro:date,genero:string,fecha_nacimiento:date,ocupacion:string,estado_civil:string,terminos_condiciones:Boolean
 
 
-Comando Modelo Historial Clinico
+# Comando Modelo Historial Clinico
 npx sequelize-cli model:generate --name Historialclinico --attributes id_usuario:integer,enfermedades:text,alergias:text,cirugias_previas:text,condiciones_piel:text,embarazo_lactancia:boolean,medicamentos:text,consume_tabaco:boolean,consume_alcohol:boolean,usa_anticonceptivos:boolean,detalles_anticonceptivos:text,diabetes:boolean,hipertension:boolean,historial_cancer:boolean,problemas_coagulacion:boolean,epilepsia:boolean,otras_condiciones:text
 
 
-Comando Modelo Citas
+# Comando Modelo Citas
 npx sequelize-cli model:generate --name Citas --attributes id_usuario:integer,id_doctor:integer,id_procedimiento:integer,fecha:date,estado:string,tipo:string,observaciones:text
 
 
-Comando Modelo Procedimientos
+# Comando Modelo Procedimientos
 npx sequelize-cli model:generate --name Procedimientos --attributes nombre:string,descripcion:text,precio:float,requiere_evaluacion:boolean,duracion:string,examenes_requeridos:text,imagen:string,categoria:string,recomendaciones_previas:text
 
-Comando para  Ordenes
+# Comando para  Ordenes
 npx sequelize-cli model:generate --name Ordenes --attributes id_usuario:integer,fecha_creacion:date,estado:string
 
-Comando para orden_procedimiento
+# Comando para orden_procedimiento
 npx sequelize-cli model:generate --name OrdenProcedimiento --attributes id_orden:integer,id_procedimiento:integer
 
-Comando para carrito
+# Comando para carrito
 npx sequelize-cli model:generate --name Carrito --attributes id_usuario:integer,id_procedimiento:integer
 
 
-Libreria para dependencia de desarrollo
+# Libreria para dependencia de desarrollo
 npm install --save-dev nodemon
 
-Libreria para almacenar imagenes
+# Libreria para almacenar imagenes
 npm install multer
 https://medium.com/@diego.coder/subida-de-archivos-con-node-js-express-y-multer-55e99219d754
 
 
-Migrar
+# Migrar
 npx sequelize-cli db:migrate
 Desmigrar
 npx sequelize-cli db:migrate:undo
 
+# Migraciones
+desmigrar  en heroku
+heroku run npx sequelize-cli db:migrate:undo:all --app clinicaestetica
 
-Instalar librerias
+# migrar heroku 
+heroku run npx sequelize-cli db:migrate --app clinicaestetica
+
+# Instalar librerias
 npm install i
 
 
-instalar redis
+# instalar redis
 npm i redis
 
-correr redis en docker
+# correr redis en docker
 docker compose up
 
-instalar paquete saber el tiempo
+# instalar paquete saber el tiempo
 npm i response-time
 
-instalar socket.io backend 
+# instalar socket.io backend 
 npm install socket.io
 Darwin
 Comandos Implementados Frontend
@@ -64,22 +70,22 @@ npm install
 Correr proyecto
 npm run dev
 
-Instalar react Router
+# Instalar react Router
 npm install react-router-dom
 
-Instalar Iconos
+# Instalar Iconos
 npm install bootstrap-icons
 
-Instalar Indicadores
+# Instalar Indicadores
 npm install react-phone-input-2
 Estilos
 npm install --save react-phone-input-2
 
-Instalar axios
+# Instalar axios
 npm install axios
 
-Pagina de Emojin copiar y pegar
+# Pagina de Emojin copiar y pegar
 https://emojiterra.com/es/emojis/cuadrado-es/
 
-Instalar socket cliente
+# Instalar socket cliente
 npm install socket.io-client
