@@ -16,6 +16,7 @@ router.get('/citas/dia/:doctorId', CitaController.citasPorDia);
 router.get("/citas/rango/:doctorId", CitaController.citasPorRango);
 // Ruta para consultar citas por tipo
 router.get("/citas/tipo/:doctorId", CitaController.citasPorTipo);
+router.get("/miscitas", authorization, verificarRol(["usuario", "doctor", "asistente"]), CitaController.misCitas);
 
 
 
