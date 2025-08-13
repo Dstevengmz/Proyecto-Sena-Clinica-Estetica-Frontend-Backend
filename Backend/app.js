@@ -15,6 +15,7 @@ const server = http.createServer(app);
 const io = socketIO(server, { cors: { origin: "*" } });
 global.io = io;
 configurarSockets(io);
+const ContenidoInstitucional = require('./routers/ContenidoInstitucionRouters');
 
 require('./config/redis'); 
 require('dotenv').config();
@@ -40,6 +41,7 @@ app.use('/apiprocedimientos',Procedimientos);
 app.use('/apiordenes',Ordenes);
 app.use('/apiordenprocedimiento',OrdenProcedimiento);
 app.use('/apicarrito',Carrito);
+app.use('/apicontenido', ContenidoInstitucional);
 
 server.listen(puerto, () => {
     console.log(`Servidor corriendo en http://localhost:${puerto}`);
