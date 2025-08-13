@@ -39,6 +39,12 @@ npx sequelize-cli db:migrate
 Desmigrar
 npx sequelize-cli db:migrate:undo
 
+# Seeder Administrador o doctor
+npx sequelize-cli seed:generate --name usuariodoctor
+
+# Migrar seeder
+npx sequelize-cli db:seed:all
+
 # Migraciones
 desmigrar  en heroku
 heroku run npx sequelize-cli db:migrate:undo:all --app clinicaestetica
