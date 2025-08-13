@@ -5,6 +5,7 @@ const {
   Carrito,
   Ordenes,
   OrdenProcedimiento,
+  Historialclinico,
 } = require("../models");
 const { EnviarCorreo } = require("../assets/corre");
 const { ValidarLaCita } = require("../assets/Validarfecharegistro");
@@ -14,9 +15,9 @@ const moment = require("moment-timezone");
 class HistorialClinicoService {
   async listarLasCitas(doctorId = null) {
     const whereCondition = doctorId ? { id_doctor: doctorId } : {};
-    
+
     return await Citas.findAll({
-      where: whereCondition, 
+      where: whereCondition,
       include: [
         {
           model: Usuarios,
@@ -31,6 +32,12 @@ class HistorialClinicoService {
             "rol",
             "ocupacion",
           ],
+          include: [
+            {
+              model: Historialclinico,
+              as: "historial_medico",
+            },
+          ],
         },
         {
           model: Usuarios,
@@ -38,7 +45,7 @@ class HistorialClinicoService {
           attributes: ["nombre"],
         },
       ],
-      order: [["id", "ASC"] ], 
+      order: [["id", "ASC"]],
     });
   }
   async crearOrdenDesdeCarrito(id_usuario) {
@@ -309,27 +316,58 @@ class HistorialClinicoService {
       throw new Error("Error al obtener citas por rango de fechas");
     }
   }
-async obtenerCitasPorTipo(doctorId, tipo, fecha) {
-  try {
-    // Usamos moment para verificar si la fecha es válida
-    const startOfDay = moment.tz(`${fecha}T00:00:00`, 'America/Bogota').toDate();
-    const endOfDay = moment.tz(`${fecha}T23:59:59`, 'America/Bogota').toDate();
+  async obtenerCitasPorTipo(doctorId, tipo, fecha) {
+    try {
+      // Usamos moment para verificar si la fecha es válida
+      const startOfDay = moment
+        .tz(`${fecha}T00:00:00`, "America/Bogota")
+        .toDate();
+      const endOfDay = moment
+        .tz(`${fecha}T23:59:59`, "America/Bogota")
+        .toDate();
 
-    // Realizamos la consulta, filtrando por tipo, doctor y fecha
-    return await Citas.findAll({
-      where: {
-        id_doctor: doctorId,
-        tipo: tipo,
-        fecha: {
-          [Op.gte]: startOfDay,
-          [Op.lte]: endOfDay,
+      // Realizamos la consulta, filtrando por tipo, doctor y fecha
+      return await Citas.findAll({
+        where: {
+          id_doctor: doctorId,
+          tipo: tipo,
+          fecha: {
+            [Op.gte]: startOfDay,
+            [Op.lte]: endOfDay,
+          },
         },
-      },
-    });
-  } catch (error) {
-    console.error("Error al obtener citas por tipo:", error);
-    throw new Error("Error al obtener citas por tipo");
+      });
+    } catch (error) {
+      console.error("Error al obtener citas por tipo:", error);
+      throw new Error("Error al obtener citas por tipo");
+    }
   }
-}
+  async obtenerMisCitas(usuarioId) {
+    return await Citas.findAll({
+      where: { id_usuario: usuarioId },
+      include: [
+        {
+          model: Usuarios,
+          as: "usuario",
+          attributes: [
+            "nombre",
+            "correo",
+            "telefono",
+            "direccion",
+            "fecha_nacimiento",
+            "genero",
+            "rol",
+            "ocupacion",
+          ],
+        },
+        {
+          model: Usuarios,
+          as: "doctor",
+          attributes: ["nombre"],
+        },
+      ],
+      order: [["fecha", "ASC"]],
+    });
+  }
 }
 module.exports = new HistorialClinicoService();
