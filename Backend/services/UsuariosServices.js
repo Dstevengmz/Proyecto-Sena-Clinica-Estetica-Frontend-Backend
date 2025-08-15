@@ -10,6 +10,18 @@ class UsuariosService {
     return await Usuarios.findAll();
   }
 
+  async listarSoloDoctores() {
+    try {
+      return await Usuarios.findAll({
+        where: { rol: "doctor", estado: true },
+        attributes: ["id", "nombre", "correo"],
+      });
+    } catch (error) {
+      console.error("Error al listar solo doctores:", error);
+      throw error;
+    }
+  }
+
   async buscarLosUsuarios(id) {
     return await Usuarios.findByPk(id);
   }

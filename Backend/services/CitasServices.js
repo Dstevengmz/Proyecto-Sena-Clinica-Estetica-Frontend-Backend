@@ -108,6 +108,12 @@ class HistorialClinicoService {
   }
 
   async crearLasCitas(data) {
+    // Normalizar fecha a zona horaria America/Bogota para evitar desfaces (ej. 03:00 AM)
+    if (data?.fecha) {
+      const m = moment.tz(data.fecha, "America/Bogota");
+      // Si viene en 'YYYY-MM-DDTHH:mm:ss' o 'YYYY-MM-DD HH:mm:ss', moment lo parsea; asegurar objeto Date
+      data.fecha = m.toDate();
+    }
     ValidarLaCita(data);
     const creacita = await Citas.create(data);
     let usuario;

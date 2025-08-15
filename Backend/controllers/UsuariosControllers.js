@@ -16,11 +16,20 @@ class UsuariosController {
       : res.status(404).json({ error: "Usuario no encontrado" });
   }
 
+  async listarDoctores(req, res) {
+    try {
+      const doctores = await usuariosService.listarSoloDoctores();
+      res.json(doctores);
+    } catch (error) {
+      console.error("Error al listar doctores:", error);
+      res.status(500).json({ error: "Error al obtener doctores" });
+    }
+  }
+
   async crearUsuarios(req, res) {
     try {
-  // Fuerza rol 'usuario' en la ruta pública, ignorando cualquier rol entrante
-  const payload = { ...req.body, rol: 'usuario' };
-  const nuevoUsuario = await usuariosService.crearLosUsuarios(payload);
+      const payload = { ...req.body, rol: "usuario" };
+      const nuevoUsuario = await usuariosService.crearLosUsuarios(payload);
       res.status(201).json(nuevoUsuario);
     } catch (error) {
       console.error("Error al crear usuario:", error);
@@ -31,9 +40,11 @@ class UsuariosController {
     }
   }
 
-    async crearUsuariosAdmin(req, res) {
+  async crearUsuariosAdmin(req, res) {
     try {
-      const nuevoUsuario = await usuariosService.crearLosUsuariosAdmin(req.body);
+      const nuevoUsuario = await usuariosService.crearLosUsuariosAdmin(
+        req.body
+      );
       res.status(201).json(nuevoUsuario);
     } catch (error) {
       console.error("Error al crear usuario:", error);
@@ -133,11 +144,9 @@ class UsuariosController {
       const { id } = req.params;
       const { estado } = req.body;
       if (typeof estado !== "boolean") {
-        return res
-          .status(400)
-          .json({
-            mensaje: "El estado debe ser un valor booleano (true o false).",
-          });
+        return res.status(400).json({
+          mensaje: "El estado debe ser un valor booleano (true o false).",
+        });
       }
       const resultado = await usuariosService.activarUsuario(id, estado);
       if (resultado.error) {
@@ -154,21 +163,28 @@ class UsuariosController {
   async obtenerNotificaciones(req, res) {
     try {
       const { id } = req.params;
-      const notificaciones = await usuariosService.obtenerNotificacionesDoctor(id);
+      const notificaciones = await usuariosService.obtenerNotificacionesDoctor(
+        id
+      );
       res.json(notificaciones);
     } catch (error) {
       console.error("Error al obtener notificaciones del doctor:", error);
-      res.status(500).json({ error: "Error al obtener notificaciones del doctor" });
+      res
+        .status(500)
+        .json({ error: "Error al obtener notificaciones del doctor" });
     }
   }
-  async obtenerNotificacionesUsuario(req,res){
+  async obtenerNotificacionesUsuario(req, res) {
     try {
       const { id } = req.params;
-      const notificaciones = await usuariosService.obtenerNotificacionesPorUsuario(id);
+      const notificaciones =
+        await usuariosService.obtenerNotificacionesPorUsuario(id);
       res.json(notificaciones);
     } catch (error) {
       console.error("Error al obtener notificaciones del usuario:", error);
-      res.status(500).json({ error: "Error al obtener notificaciones del usuario" });
+      res
+        .status(500)
+        .json({ error: "Error al obtener notificaciones del usuario" });
     }
   }
 
@@ -176,8 +192,11 @@ class UsuariosController {
     try {
       const { id } = req.params;
       const { index } = req.body;
-      const resultado = await usuariosService.marcarNotificacionComoLeida(id, index);
-      
+      const resultado = await usuariosService.marcarNotificacionComoLeida(
+        id,
+        index
+      );
+
       if (resultado.success) {
         res.json({ message: "Notificación marcada como leída" });
       } else {
@@ -185,23 +204,33 @@ class UsuariosController {
       }
     } catch (error) {
       console.error("Error al marcar notificación como leída:", error);
-      res.status(500).json({ error: "Error al marcar notificación como leída" });
+      res
+        .status(500)
+        .json({ error: "Error al marcar notificación como leída" });
     }
   }
 
   async marcarTodasNotificacionesComoLeidas(req, res) {
     try {
       const { id } = req.params;
-      const resultado = await usuariosService.marcarTodasNotificacionesComoLeidas(id);
-      
+      const resultado =
+        await usuariosService.marcarTodasNotificacionesComoLeidas(id);
+
       if (resultado.success) {
         res.json({ message: "Todas las notificaciones marcadas como leídas" });
       } else {
         res.status(400).json({ error: resultado.error });
       }
     } catch (error) {
-      console.error("Error al marcar todas las notificaciones como leídas:", error);
-      res.status(500).json({ error: "Error al marcar todas las notificaciones como leídas" });
+      console.error(
+        "Error al marcar todas las notificaciones como leídas:",
+        error
+      );
+      res
+        .status(500)
+        .json({
+          error: "Error al marcar todas las notificaciones como leídas",
+        });
     }
   }
 
@@ -209,12 +238,12 @@ class UsuariosController {
     try {
       const { id } = req.params;
       const resultado = await usuariosService.archivarNotificacionesLeidas(id);
-      
+
       if (resultado.success) {
-        res.json({ 
+        res.json({
           message: "Notificaciones leídas archivadas correctamente",
           archivadas: resultado.archivadas,
-          activas: resultado.activas
+          activas: resultado.activas,
         });
       } else {
         res.status(400).json({ error: resultado.error });
@@ -228,11 +257,15 @@ class UsuariosController {
   async obtenerHistorialNotificaciones(req, res) {
     try {
       const { id } = req.params;
-      const historial = await usuariosService.obtenerHistorialNotificaciones(id);
+      const historial = await usuariosService.obtenerHistorialNotificaciones(
+        id
+      );
       res.json(historial);
     } catch (error) {
       console.error("Error al obtener historial de notificaciones:", error);
-      res.status(500).json({ error: "Error al obtener historial de notificaciones" });
+      res
+        .status(500)
+        .json({ error: "Error al obtener historial de notificaciones" });
     }
   }
 
@@ -241,45 +274,62 @@ class UsuariosController {
     try {
       const { id } = req.params;
       const { index } = req.body;
-      const resultado = await usuariosService.marcarNotificacionUsuarioComoLeida(id, index);
-      
+      const resultado =
+        await usuariosService.marcarNotificacionUsuarioComoLeida(id, index);
+
       if (resultado.success) {
         res.json({ message: "Notificación de usuario marcada como leída" });
       } else {
         res.status(400).json({ error: resultado.error });
       }
     } catch (error) {
-      console.error("Error al marcar notificación de usuario como leída:", error);
-      res.status(500).json({ error: "Error al marcar notificación como leída" });
+      console.error(
+        "Error al marcar notificación de usuario como leída:",
+        error
+      );
+      res
+        .status(500)
+        .json({ error: "Error al marcar notificación como leída" });
     }
   }
 
   async marcarTodasNotificacionesUsuarioComoLeidas(req, res) {
     try {
       const { id } = req.params;
-      const resultado = await usuariosService.marcarTodasNotificacionesUsuarioComoLeidas(id);
-      
+      const resultado =
+        await usuariosService.marcarTodasNotificacionesUsuarioComoLeidas(id);
+
       if (resultado.success) {
-        res.json({ message: "Todas las notificaciones de usuario marcadas como leídas" });
+        res.json({
+          message: "Todas las notificaciones de usuario marcadas como leídas",
+        });
       } else {
         res.status(400).json({ error: resultado.error });
       }
     } catch (error) {
-      console.error("Error al marcar todas las notificaciones de usuario como leídas:", error);
-      res.status(500).json({ error: "Error al marcar todas las notificaciones como leídas" });
+      console.error(
+        "Error al marcar todas las notificaciones de usuario como leídas:",
+        error
+      );
+      res
+        .status(500)
+        .json({
+          error: "Error al marcar todas las notificaciones como leídas",
+        });
     }
   }
 
   async archivarNotificacionesLeidasUsuario(req, res) {
     try {
       const { id } = req.params;
-      const resultado = await usuariosService.archivarNotificacionesLeidasUsuario(id);
-      
+      const resultado =
+        await usuariosService.archivarNotificacionesLeidasUsuario(id);
+
       if (resultado.success) {
-        res.json({ 
+        res.json({
           message: "Notificaciones leídas de usuario archivadas correctamente",
           archivadas: resultado.archivadas,
-          activas: resultado.activas
+          activas: resultado.activas,
         });
       } else {
         res.status(400).json({ error: resultado.error });
@@ -293,11 +343,17 @@ class UsuariosController {
   async obtenerHistorialNotificacionesUsuario(req, res) {
     try {
       const { id } = req.params;
-      const historial = await usuariosService.obtenerHistorialNotificacionesUsuario(id);
+      const historial =
+        await usuariosService.obtenerHistorialNotificacionesUsuario(id);
       res.json(historial);
     } catch (error) {
-      console.error("Error al obtener historial de notificaciones de usuario:", error);
-      res.status(500).json({ error: "Error al obtener historial de notificaciones" });
+      console.error(
+        "Error al obtener historial de notificaciones de usuario:",
+        error
+      );
+      res
+        .status(500)
+        .json({ error: "Error al obtener historial de notificaciones" });
     }
   }
 }

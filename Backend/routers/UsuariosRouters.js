@@ -8,6 +8,7 @@ const { verificarIntentos } = require("../middleware/intentosfallidos");
 router.get("/perfil", authorization, usuariosController.perfilUsuario);
 router.post("/iniciarsesion",verificarIntentos, usuariosController.iniciarSesion);
 router.get("/listarusuarios",authorization,verificarRol(["doctor"]), usuariosController.listarUsuarios);
+router.get("/doctores", authorization, usuariosController.listarDoctores);
 router.get("/buscarusuarios/:id", usuariosController.buscarUsuarios);
 // Registro público: no requiere token ni rol; el backend forzará rol "usuario"
 router.post("/crearusuarios", validarUsuarioPublico, usuariosController.crearUsuarios);
