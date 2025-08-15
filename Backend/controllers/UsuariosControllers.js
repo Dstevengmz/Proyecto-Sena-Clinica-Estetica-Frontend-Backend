@@ -18,7 +18,22 @@ class UsuariosController {
 
   async crearUsuarios(req, res) {
     try {
-      const nuevoUsuario = await usuariosService.crearLosUsuarios(req.body);
+  // Fuerza rol 'usuario' en la ruta pública, ignorando cualquier rol entrante
+  const payload = { ...req.body, rol: 'usuario' };
+  const nuevoUsuario = await usuariosService.crearLosUsuarios(payload);
+      res.status(201).json(nuevoUsuario);
+    } catch (error) {
+      console.error("Error al crear usuario:", error);
+      res.status(500).json({
+        message: "Hubo un error al crear el usuario",
+        error: error.message,
+      });
+    }
+  }
+
+    async crearUsuariosAdmin(req, res) {
+    try {
+      const nuevoUsuario = await usuariosService.crearLosUsuariosAdmin(req.body);
       res.status(201).json(nuevoUsuario);
     } catch (error) {
       console.error("Error al crear usuario:", error);

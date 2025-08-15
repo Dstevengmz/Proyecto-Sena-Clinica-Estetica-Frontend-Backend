@@ -102,3 +102,9 @@ heroku logs --tail --app clinicaestetica
 
 # Ver variables globales
 heroku config --app clinicaestetica
+
+# Para usar redis con docker 
+redis://localhost:6379
+
+
+# PASOS PARA USAR LA APP
