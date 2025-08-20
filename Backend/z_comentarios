@@ -108,3 +108,6 @@ redis://localhost:6379
 
 
 # PASOS PARA USAR LA APP
+
+heroku run npx sequelize-cli db:migrate --app blogdedarwin
+heroku run npx sequelize-cli db:seed:all --app blogdedarwin
