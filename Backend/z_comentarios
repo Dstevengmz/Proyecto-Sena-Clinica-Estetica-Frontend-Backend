@@ -111,3 +111,10 @@ redis://localhost:6379
 
 heroku run npx sequelize-cli db:migrate --app blogdedarwin
 heroku run npx sequelize-cli db:seed:all --app blogdedarwin
+
+# Comando para crear ramas
+git checkout -b feature/incluir-procedimientos
+
+
+# Limpiar redis de docker 
+docker exec -it backend-redis-1 redis-cli FLUSHALL

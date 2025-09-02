@@ -6,6 +6,7 @@ const {
   Ordenes,
   OrdenProcedimiento,
   Historialclinico,
+  Procedimientos,
 } = require("../models");
 const { EnviarCorreo } = require("../assets/corre");
 const { ValidarLaCita } = require("../assets/Validarfecharegistro");
@@ -32,22 +33,29 @@ class HistorialClinicoService {
             "rol",
             "ocupacion",
           ],
+          include: [{ model: Historialclinico, as: "historial_medico" }],
+        },
+        {
+          model: Ordenes,
+          as: "orden",
           include: [
             {
-              model: Historialclinico,
-              as: "historial_medico",
+              model: Procedimientos,
+              as: "procedimientos",
+              through: { attributes: [] },
             },
           ],
         },
         {
           model: Usuarios,
           as: "doctor",
-          attributes: ["nombre"],
+          attributes: ["nombre", "ocupacion"],
         },
       ],
       order: [["id", "ASC"]],
     });
   }
+
   async crearOrdenDesdeCarrito(id_usuario) {
     try {
       return await sequelize.transaction(async (t) => {
@@ -97,6 +105,18 @@ class HistorialClinicoService {
             "rol",
             "ocupacion",
           ],
+          include: [{ model: Historialclinico, as: "historial_medico" }],
+        },
+        {
+          model: Ordenes,
+          as: "orden",
+          include: [
+            {
+              model: Procedimientos,
+              as: "procedimientos",
+              through: { attributes: [] },
+            },
+          ],
         },
         {
           model: Usuarios,
@@ -115,6 +135,41 @@ class HistorialClinicoService {
       data.fecha = m.toDate();
     }
     ValidarLaCita(data);
+
+    const tieneCitasPrevias = await Citas.findOne({
+      where: { id_usuario: data.id_usuario },
+    });
+
+    const carrito = await Carrito.findAll({
+      where: { id_usuario: data.id_usuario },
+    });
+
+    if (!tieneCitasPrevias) {
+      // Primera cita
+      if (carrito.length === 0) {
+        throw new Error(
+          "Debes agregar al menos un procedimiento para agendar la primera cita de evaluación."
+        );
+      }
+      data.tipo = "evaluacion";
+      const nuevaOrden = await this.crearOrdenDesdeCarrito(data.id_usuario);
+      if (!nuevaOrden || !nuevaOrden.id) {
+        throw new Error(
+          "No se pudo crear la orden. Asegúrate de haber seleccionado un procedimiento en tu carrito."
+        );
+      }
+      data.id_orden = nuevaOrden.id;
+    } else {
+      if (carrito.length > 0) {
+        const nuevaOrden = await this.crearOrdenDesdeCarrito(data.id_usuario);
+        if (!nuevaOrden || !nuevaOrden.id) {
+          throw new Error(
+            "No se pudo crear la orden. Asegúrate de haber seleccionado un procedimiento en tu carrito."
+          );
+        }
+        data.id_orden = nuevaOrden.id;
+      }
+    }
     const creacita = await Citas.create(data);
     let usuario;
     let doctor;
@@ -370,6 +425,17 @@ class HistorialClinicoService {
           model: Usuarios,
           as: "doctor",
           attributes: ["nombre"],
+        },
+        {
+          model: Ordenes,
+          as: "orden",
+          include: [
+            {
+              model: Procedimientos,
+              as: "procedimientos",
+              through: { attributes: [] },
+            },
+          ],
         },
       ],
       order: [["fecha", "ASC"]],
