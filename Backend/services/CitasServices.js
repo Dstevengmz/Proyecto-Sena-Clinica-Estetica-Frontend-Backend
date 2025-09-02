@@ -375,5 +375,34 @@ class HistorialClinicoService {
       order: [["fecha", "ASC"]],
     });
   }
+
+    async cambiarEstadoCita({ id, estado, doctorId }) {
+      try {
+        const cita = await Citas.findByPk(id);
+        if (!cita) return null;
+
+        if (parseInt(cita.id_doctor) !== parseInt(doctorId)) {
+          const err = new Error("No autorizado para cambiar esta cita");
+          err.status = 403;
+          throw err;
+        }
+
+        const estadosPermitidos = ["pendiente", "confirmada", "realizada", "cancelada"];
+        if (!estadosPermitidos.includes(estado)) {
+          const err = new Error("Estado inválido");
+          err.status = 400;
+          throw err;
+        }
+
+        cita.estado = estado;
+        await cita.save();
+        console.log("Estado de cita actualizado:", { id: cita.id, estado: cita.estado });
+        return cita;
+      } catch (error) {
+        console.error("Error al cambiar estado de la cita:", error);
+        throw error;
+      }
+    }
+  
 }
 module.exports = new HistorialClinicoService();

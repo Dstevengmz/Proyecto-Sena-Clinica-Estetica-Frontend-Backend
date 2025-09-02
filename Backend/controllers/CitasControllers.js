@@ -188,5 +188,24 @@ class CitasControllers {
       res.status(500).json({ error: "Error al obtener mis citas" });
     }
   }
+  async actualizarEstadoCita(req, res) {
+    try {
+      const { id } = req.params;
+  const { estado = "realizada" } = req.body;
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "ID inválido" });
+      }
+  const doctorId = req.usuario.id;
+  const resultado = await citasService.cambiarEstadoCita({ id, estado, doctorId });
+  if (!resultado) {
+        return res.status(404).json({ error: "Cita no encontrada" });
+      }
+  res.json({ mensaje: "Estado de la cita actualizado correctamente", cita: resultado });
+    } catch (e) {
+      const status = e.status || 500;
+      res.status(status).json({ error: e.message || "Error en el servidor al actualizar la cita" });
+    }
+  }
+  
 }
 module.exports = new CitasControllers();
