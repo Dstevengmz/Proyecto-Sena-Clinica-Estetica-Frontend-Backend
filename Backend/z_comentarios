@@ -118,3 +118,6 @@ git checkout -b feature/incluir-procedimientos
 
 # Limpiar redis de docker 
 docker exec -it backend-redis-1 redis-cli FLUSHALL
+
+# Mysql relacional 
+supabase.com

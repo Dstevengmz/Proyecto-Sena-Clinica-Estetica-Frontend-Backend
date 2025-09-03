@@ -25,7 +25,6 @@ module.exports = (sequelize, DataTypes) => {
       fecha: DataTypes.DATE,
       estado: DataTypes.ENUM(
         "pendiente",
-        "confirmada",
         "realizada",
         "cancelada"
       ),

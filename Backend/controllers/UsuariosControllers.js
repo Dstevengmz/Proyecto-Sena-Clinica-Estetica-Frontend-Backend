@@ -25,6 +25,16 @@ class UsuariosController {
       res.status(500).json({ error: "Error al obtener doctores" });
     }
   }
+    async listarUsuarios(req, res) {
+    try {
+      const usuarios = await usuariosService.listarSoloUsuarios();
+      res.json(usuarios);
+    } catch (error) {
+      console.error("Error al listar usuarios:", error);
+      res.status(500).json({ error: "Error al obtener usuarios" });
+    }
+  }
+
 
   async crearUsuarios(req, res) {
     try {

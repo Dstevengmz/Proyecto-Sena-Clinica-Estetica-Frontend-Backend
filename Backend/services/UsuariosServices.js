@@ -22,6 +22,20 @@ class UsuariosService {
     }
   }
 
+  async listarSoloUsuarios() {
+    try {
+      return await Usuarios.findAll({
+        where: { rol: "usuario", estado: true },
+        attributes: ["id", "nombre", "correo", "numerodocumento"],
+      });
+    } catch (error) {
+      console.error("Error al listar solo usuarios:", error);
+      throw error;
+    }
+  }
+
+
+
   async buscarLosUsuarios(id) {
     return await Usuarios.findByPk(id);
   }
