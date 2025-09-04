@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
     otras_condiciones: DataTypes.TEXT
   }, {
     sequelize,
-    modelName: 'Historialclinico',
+    modelName: 'historialclinico',
   });
   return Historialclinico;
 };

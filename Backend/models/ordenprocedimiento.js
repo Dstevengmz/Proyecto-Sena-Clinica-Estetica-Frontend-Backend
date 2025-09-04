@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     id_procedimiento: DataTypes.INTEGER
   }, {
     sequelize,
-    modelName: 'OrdenProcedimiento',
+    modelName: 'ordenprocedimiento',
   });
   return OrdenProcedimiento;
 };
