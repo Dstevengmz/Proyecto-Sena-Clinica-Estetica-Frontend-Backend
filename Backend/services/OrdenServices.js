@@ -1,13 +1,13 @@
 const {
-  Ordenes,
-  Procedimientos,
-  Citas,
+  ordenes,
+  procedimientos,
+  citas,
 } = require("../models");
 
 class OrdenServices {
   async listarOrdenesPorUsuario(id_usuario) {
     try {
-      return await Ordenes.findAll({
+      return await ordenes.findAll({
         where: { id_usuario },
         include: [
           {
@@ -24,8 +24,7 @@ class OrdenServices {
 
   async listarOrdenesEvaluacionRealizadaPorUsuario(id_usuario) {
     try {
-      // Buscar citas de evaluación realizadas del usuario y obtener los id_orden únicos
-      const citasEvaluacion = await Citas.findAll({
+      const citasEvaluacion = await citas.findAll({
         where: {
           id_usuario,
           tipo: "evaluacion",
@@ -37,11 +36,11 @@ class OrdenServices {
       const ordenIds = [...new Set(citasEvaluacion.map((c) => c.id_orden).filter(Boolean))];
       if (ordenIds.length === 0) return [];
 
-      return await Ordenes.findAll({
+      return await ordenes.findAll({
         where: { id_usuario, id: ordenIds },
         include: [
           {
-            model: Procedimientos,
+            model: procedimientos,
             as: "procedimientos",
             through: { attributes: [] },
           },
@@ -55,7 +54,7 @@ class OrdenServices {
 
   async listarLasOrdenes() {
     try {
-      return await Ordenes.findAll();
+      return await ordenes.findAll();
     } catch (e) {
       console.log("Error en el servidor al listar las ordenes:", e);
     }
@@ -63,7 +62,7 @@ class OrdenServices {
 
   async buscarLasOrdenes(id) {
     try {
-      return await Ordenes.findByPk(id);
+      return await ordenes.findByPk(id);
     } catch (e) {
       console.log("Error en el servidor al buscar la orden:", e);
     }
@@ -72,7 +71,7 @@ class OrdenServices {
   async crearLasOrdenes(data) {
     try {
       const { procedimientos, ...datosOrden } = data;
-      const nuevaOrden = await Ordenes.create(datosOrden);
+      const nuevaOrden = await ordenes.create(datosOrden);
       if (procedimientos && procedimientos.length > 0) {
         await nuevaOrden.addProcedimientos(procedimientos);
       }
@@ -84,7 +83,7 @@ class OrdenServices {
 
   async eliminarLasOrdenes(id) {
     try {
-      return await Ordenes.destroy({ where: { id } });
+      return await ordenes.destroy({ where: { id } });
     } catch (e) {
       console.log("Error en el servidor al eliminar la orden:", e);
     }
@@ -92,7 +91,7 @@ class OrdenServices {
 
   async actualizarLasOrdenes(id, datos) {
     try {
-      let actualizado = await Ordenes.update(datos, { where: { id } });
+      let actualizado = await ordenes.update(datos, { where: { id } });
       return actualizado;
     } catch (e) {
       console.log("Error en el servidor al actualizar la orden:", e);

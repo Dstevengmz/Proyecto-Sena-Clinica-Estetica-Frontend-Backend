@@ -1,12 +1,12 @@
 const {
-  Citas,
-  Usuarios,
+  citas,
+  usuarios,
   sequelize,
-  Carrito,
-  Ordenes,
-  OrdenProcedimiento,
-  Historialclinico,
-  Procedimientos,
+  carrito,
+  ordenes,
+  ordenprocedimiento,
+  historialclinico,
+  procedimientos,
 } = require("../models");
 const { EnviarCorreo } = require("../assets/corre");
 const { ValidarLaCita } = require("../assets/Validarfecharegistro");
@@ -17,11 +17,11 @@ class HistorialClinicoService {
   async listarLasCitas(doctorId = null) {
     const whereCondition = doctorId ? { id_doctor: doctorId } : {};
 
-    return await Citas.findAll({
+    return await citas.findAll({
       where: whereCondition,
       include: [
         {
-          model: Usuarios,
+          model: usuarios,
           as: "usuario",
           attributes: [
             "nombre",
@@ -33,21 +33,21 @@ class HistorialClinicoService {
             "rol",
             "ocupacion",
           ],
-          include: [{ model: Historialclinico, as: "historial_medico" }],
+          include: [{ model: historialclinico, as: "historial_medico" }],
         },
         {
-          model: Ordenes,
+          model: ordenes,
           as: "orden",
           include: [
             {
-              model: Procedimientos,
+              model: procedimientos,
               as: "procedimientos",
               through: { attributes: [] },
             },
           ],
         },
         {
-          model: Usuarios,
+          model: usuarios,
           as: "doctor",
           attributes: ["nombre", "ocupacion"],
         },
@@ -59,7 +59,7 @@ class HistorialClinicoService {
   async crearOrdenDesdeCarrito(id_usuario) {
     try {
       return await sequelize.transaction(async (t) => {
-        const nuevaOrden = await Ordenes.create(
+        const nuevaOrden = await ordenes.create(
           {
             id_usuario,
             fecha_creacion: new Date(),
@@ -67,7 +67,7 @@ class HistorialClinicoService {
           },
           { transaction: t }
         );
-        const carrito = await Carrito.findAll({
+        const carrito = await carrito.findAll({
           where: { id_usuario },
           transaction: t,
         });
@@ -79,9 +79,9 @@ class HistorialClinicoService {
           id_orden: nuevaOrden.id,
           id_procedimiento: item.id_procedimiento,
         }));
-        console.log("Registros a insertar en OrdenProcedimiento:", registros);
-        await OrdenProcedimiento.bulkCreate(registros, { transaction: t });
-        await Carrito.destroy({ where: { id_usuario }, transaction: t });
+        console.log("Registros a insertar en ordenprocedimiento:", registros);
+        await ordenprocedimiento.bulkCreate(registros, { transaction: t });
+        await carrito.destroy({ where: { id_usuario }, transaction: t });
         return nuevaOrden;
       });
     } catch (e) {
@@ -90,10 +90,10 @@ class HistorialClinicoService {
   }
 
   async buscarLasCitas(id) {
-    return await Citas.findByPk(id, {
+    return await citas.findByPk(id, {
       include: [
         {
-          model: Usuarios,
+          model: usuarios,
           as: "usuario",
           attributes: [
             "nombre",
@@ -105,21 +105,21 @@ class HistorialClinicoService {
             "rol",
             "ocupacion",
           ],
-          include: [{ model: Historialclinico, as: "historial_medico" }],
+          include: [{ model: historialclinico, as: "historial_medico" }],
         },
         {
-          model: Ordenes,
+          model: ordenes,
           as: "orden",
           include: [
             {
-              model: Procedimientos,
+              model: procedimientos,
               as: "procedimientos",
               through: { attributes: [] },
             },
           ],
         },
         {
-          model: Usuarios,
+          model: usuarios,
           as: "doctor",
           attributes: ["nombre"],
         },
@@ -136,11 +136,11 @@ class HistorialClinicoService {
     }
     ValidarLaCita(data);
 
-    const tieneCitasPrevias = await Citas.findOne({
+    const tieneCitasPrevias = await citas.findOne({
       where: { id_usuario: data.id_usuario },
     });
 
-    const carrito = await Carrito.findAll({
+    const carrito = await carrito.findAll({
       where: { id_usuario: data.id_usuario },
     });
 
@@ -177,7 +177,7 @@ class HistorialClinicoService {
             );
           }
           // Verificar que exista una cita de evaluación realizada ligada a esa orden y a ese usuario
-          const evaluacionRealizada = await Citas.findOne({
+          const evaluacionRealizada = await citas.findOne({
             where: {
               id_usuario: data.id_usuario,
               id_orden: data.id_orden,
@@ -193,12 +193,12 @@ class HistorialClinicoService {
         }
       }
     }
-    const creacita = await Citas.create(data);
+    const creacita = await citas.create(data);
     let usuario;
     let doctor;
     try {
-      usuario = await Usuarios.findByPk(data.id_usuario);
-      doctor = await Usuarios.findByPk(data.id_doctor);
+      usuario = await usuarios.findByPk(data.id_usuario);
+      doctor = await usuarios.findByPk(data.id_doctor);
       if (!usuario) {
         throw new Error("Usuario no encontrado");
       }
@@ -273,7 +273,7 @@ class HistorialClinicoService {
   }
 
   async eliminarLasCitas(id) {
-    const citas = await Citas.findByPk(id);
+    const citas = await citas.findByPk(id);
 
     if (citas) {
       return await citas.destroy();
@@ -283,7 +283,7 @@ class HistorialClinicoService {
 
   async actualizarLasCitas(id, datos) {
     try {
-      let actualizado = await Citas.update(datos, { where: { id } });
+      let actualizado = await citas.update(datos, { where: { id } });
       return actualizado;
     } catch (e) {
       console.log("Error en el servidor al actualizar el Citas:", e);
@@ -298,14 +298,14 @@ class HistorialClinicoService {
       throw new Error("Fecha no Valida");
     }
 
-    return await Citas.findAll({
+    return await citas.findAll({
       where: {
         fecha: {
           [Op.between]: [inicioDelDia, finDelDia],
         },
       },
       include: {
-        model: Usuarios,
+        model: usuarios,
         as: "usuario",
         attributes: ["nombre"],
       },
@@ -352,7 +352,7 @@ class HistorialClinicoService {
       console.log("End Date:", FechaFin); 
 
       // Realizamos la consulta con las fechas ajustadas y solo las citas del doctor
-      return await Citas.findAll({
+      return await citas.findAll({
         where: {
           // Filtramos por el ID del doctor
           id_doctor: doctorId, 
@@ -392,7 +392,7 @@ class HistorialClinicoService {
       console.log("End Date:", RangoFin); 
 
       // Realizar la consulta filtrada por doctor y el rango de fechas
-      return await Citas.findAll({
+      return await citas.findAll({
         where: {
           // Filtrar por el ID del doctor
           id_doctor: doctorId, 
@@ -418,7 +418,7 @@ class HistorialClinicoService {
         .toDate();
 
       // Realizamos la consulta, filtrando por tipo, doctor y fecha
-      return await Citas.findAll({
+      return await citas.findAll({
         where: {
           id_doctor: doctorId,
           tipo: tipo,
@@ -434,11 +434,11 @@ class HistorialClinicoService {
     }
   }
   async obtenerMisCitas(usuarioId) {
-    return await Citas.findAll({
+    return await citas.findAll({
       where: { id_usuario: usuarioId },
       include: [
         {
-          model: Usuarios,
+          model: usuarios,
           as: "usuario",
           attributes: [
             "nombre",
@@ -452,16 +452,16 @@ class HistorialClinicoService {
           ],
         },
         {
-          model: Usuarios,
+          model: usuarios,
           as: "doctor",
           attributes: ["nombre"],
         },
         {
-          model: Ordenes,
+          model: ordenes,
           as: "orden",
           include: [
             {
-              model: Procedimientos,
+              model: procedimientos,
               as: "procedimientos",
               through: { attributes: [] },
             },
@@ -474,7 +474,7 @@ class HistorialClinicoService {
 
     async cambiarEstadoCita({ id, estado, doctorId }) {
       try {
-        const cita = await Citas.findByPk(id);
+        const cita = await citas.findByPk(id);
         if (!cita) return null;
 
         if (parseInt(cita.id_doctor) !== parseInt(doctorId)) {

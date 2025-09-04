@@ -1,13 +1,13 @@
-const { Carrito, Procedimientos } = require("../models");
+const { carrito, procedimientos } = require("../models");
 
 class CarritoService {
   async listarCarritoPorUsuario(id_usuario) {
     try {
-      return await Carrito.findAll({
+      return await carrito.findAll({
         where: { id_usuario },
         include: [
           {
-            model: Procedimientos,
+            model: procedimientos,
             as: "procedimiento",
           },
         ],
@@ -20,7 +20,7 @@ class CarritoService {
 
   async agregarAlCarrito(data) {
     try {
-      const verificarItemenLista = await Carrito.findOne({
+      const verificarItemenLista = await carrito.findOne({
         where: {
           id_procedimiento: data.id_procedimiento,
           id_usuario: data.id_usuario,
@@ -29,8 +29,8 @@ class CarritoService {
       if (verificarItemenLista) {
         throw new Error("El procedimiento ya está en el carrito.");
       } else {
-        const nuevo = await Carrito.create(data);
-        const procedimiento = await Procedimientos.findByPk(
+        const nuevo = await carrito.create(data);
+        const procedimiento = await procedimientos.findByPk(
           data.id_procedimiento
         );
         return {
@@ -46,7 +46,7 @@ class CarritoService {
 
   async eliminarDelCarrito(id) {
     try {
-      return await Carrito.destroy({ where: { id } });
+      return await carrito.destroy({ where: { id } });
     } catch (error) {
       console.log("Error al eliminar del carrito:", error);
       throw error;
@@ -55,7 +55,7 @@ class CarritoService {
 
   async limpiarCarritoUsuario(id_usuario) {
     try {
-      return await Carrito.destroy({ where: { id_usuario } });
+      return await carrito.destroy({ where: { id_usuario } });
     } catch (error) {
       console.log("Error al limpiar el carrito del usuario:", error);
       throw error;

@@ -1,10 +1,10 @@
-const { Historialclinico, Usuarios } = require("../models");
+const { historialclinico, usuarios } = require("../models");
 const bcrypt = require("bcrypt");
 class HistorialClinicoService {
   async listarLosHistorialesClinicos() {
-    return await Historialclinico.findAll({
+    return await historialclinico.findAll({
       include: {
-        model: Usuarios,
+        model: usuarios,
         as: "usuario",
         attributes: [
           "nombre",
@@ -22,9 +22,9 @@ class HistorialClinicoService {
 
   async buscarLosHistorialesClinicos(id) {
     try {
-      return await Historialclinico.findByPk(id, {
+      return await historialclinico.findByPk(id, {
         include: {
-          model: Usuarios,
+          model: usuarios,
           as: "usuario",
           attributes: [
             "nombre",
@@ -45,10 +45,10 @@ class HistorialClinicoService {
 
   async buscarLosHistorialesClinicosPorUsuario(id_usuario) {
     try {
-      return await Historialclinico.findOne({
+      return await historialclinico.findOne({
         where: { id_usuario },
         include: {
-          model: Usuarios,
+          model: usuarios,
           as: "usuario",
           attributes: [
             "nombre",
@@ -71,11 +71,11 @@ class HistorialClinicoService {
   }
 
   async crearLosHistorialesClinicos(data) {
-    return await Historialclinico.create(data);
+    return await historialclinico.create(data);
   }
 
   async eliminarLosHistorialesClinicos(id) {
-    const historialclinico = await Historialclinico.findByPk(id);
+    const historialclinico = await historialclinico.findByPk(id);
     if (historialclinico) {
       return await historialclinico.destroy();
     }
@@ -84,7 +84,7 @@ class HistorialClinicoService {
 
   async actualizarLosHistorialesClinicos(id, datos) {
     try {
-      let actualizado = await Historialclinico.update(datos, { where: { id } });
+      let actualizado = await historialclinico.update(datos, { where: { id } });
       return actualizado;
     } catch (e) {
       console.log("Error en el servidor al actualizar el Historialclinico:", e);

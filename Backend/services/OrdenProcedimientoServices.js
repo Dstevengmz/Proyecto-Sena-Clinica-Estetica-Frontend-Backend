@@ -1,9 +1,9 @@
-const { OrdenProcedimiento } = require("../models");
+const { ordenprocedimiento } = require("../models");
 
 class OrdenProcedimientoServices {
   async listarLasOrdenesProcedimientos() {
     try {
-      return await OrdenProcedimiento.findAll();
+      return await ordenprocedimiento.findAll();
     } catch (e) {
       console.log("Error en el servidor al listar las  Ordenes Procedimientos:", e);
     }
@@ -11,7 +11,7 @@ class OrdenProcedimientoServices {
 
   async buscarLasOrdenesProcedimientos(id) {
     try {
-      return await OrdenProcedimiento.findByPk(id);
+      return await ordenprocedimiento.findByPk(id);
     } catch (e) {
       console.log("Error en el servidor al buscar las Ordenes Procedimientos:", e);
     }
@@ -19,7 +19,7 @@ class OrdenProcedimientoServices {
 
   async crearLasOrdenesProcedimientos(data) {
     try {
-      return await OrdenProcedimiento.create(data);
+      return await ordenprocedimiento.create(data);
     } catch (e) {
       console.log("Error en el servidor al crear las Ordenes Procedimientos:", e);
     }
@@ -27,7 +27,7 @@ class OrdenProcedimientoServices {
 
   async eliminarLasOrdenesProcedimientos(id) {
     try {
-      return await OrdenProcedimiento.destroy({ where: { id } });
+      return await ordenprocedimiento.destroy({ where: { id } });
     } catch (e) {
       console.log("Error en el servidor al eliminar las Ordenes Procedimientos:", e);
     }
@@ -35,7 +35,7 @@ class OrdenProcedimientoServices {
   
   async actualizarLasOrdenesProcedimientos(id, datos) {
     try {
-      let actualizado = await OrdenProcedimiento.update(datos, { where: { id } });
+      let actualizado = await ordenprocedimiento.update(datos, { where: { id } });
       return actualizado;
     } catch (e) {
         console.log("Error en el servidor al actualizar  las Ordenes Procedimientos:", e);

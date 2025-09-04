@@ -1,4 +1,4 @@
-const { Usuarios } = require("../models");
+const { usuarios } = require("../models");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { EnviarCorreo } = require("../assets/corre");
@@ -7,12 +7,12 @@ const hashaleatorio = 10;
 const LimpiarNombre = require("../assets/LimpiarNombreUtils");
 class UsuariosService {
   async listarLosUsuarios() {
-    return await Usuarios.findAll();
+    return await usuarios.findAll();
   }
 
   async listarSoloDoctores() {
     try {
-      return await Usuarios.findAll({
+      return await usuarios.findAll({
         where: { rol: "doctor", estado: true },
         attributes: ["id", "nombre", "correo"],
       });
@@ -24,7 +24,7 @@ class UsuariosService {
 
   async listarSoloUsuarios() {
     try {
-      return await Usuarios.findAll({
+      return await usuarios.findAll({
         where: { rol: "usuario", estado: true },
         attributes: [
           "id",
@@ -46,14 +46,14 @@ class UsuariosService {
 
 
   async buscarLosUsuarios(id) {
-    return await Usuarios.findByPk(id);
+    return await usuarios.findByPk(id);
   }
 
   async crearLosUsuarios(data) {
     const nombreLimpio = LimpiarNombre(data.nombre);
     data.nombre = nombreLimpio;
     const hashedPassword = await bcrypt.hash(data.contrasena, hashaleatorio);
-    const nuevoUsuario = await Usuarios.create({
+    const nuevoUsuario = await usuarios.create({
       ...data,
       nombre: nombreLimpio,
       contrasena: hashedPassword,
@@ -78,7 +78,7 @@ class UsuariosService {
     const nombreLimpio = LimpiarNombre(data.nombre);
     data.nombre = nombreLimpio;
     const hashedPassword = await bcrypt.hash(data.contrasena, hashaleatorio);
-    const nuevoUsuario = await Usuarios.create({
+    const nuevoUsuario = await usuarios.create({
       ...data,
       nombre: nombreLimpio,
       contrasena: hashedPassword,
@@ -101,7 +101,7 @@ class UsuariosService {
 
 
   async eliminarLosUsuarios(id) {
-    const usuario = await Usuarios.findByPk(id);
+    const usuario = await usuarios.findByPk(id);
     if (usuario) {
       return await usuario.destroy();
     }
@@ -110,11 +110,11 @@ class UsuariosService {
 
   async actualizarLosUsuario(id, datos) {
     try {
-      const usuario = await Usuarios.findByPk(id);
+      const usuario = await usuarios.findByPk(id);
       if (!usuario) {
         return { error: "Correo no registrado" };
       }
-      let actualizado = await Usuarios.update(datos, { where: { id } });
+      let actualizado = await usuarios.update(datos, { where: { id } });
       return actualizado;
     } catch (e) {
       console.log("Error en el servidor al actualizar el usuario:", e);
@@ -123,7 +123,7 @@ class UsuariosService {
 
   async iniciarSesion(correo, contrasena) {
     try {
-      const usuario = await Usuarios.findOne({ where: { correo } });
+      const usuario = await usuarios.findOne({ where: { correo } });
       if (!usuario) {
         return { error: "Correo no registrado" };
       }
@@ -155,7 +155,7 @@ class UsuariosService {
   }
   async activarUsuario(id, estado) {
     try {
-      const usuario = await Usuarios.findByPk(id);
+      const usuario = await usuarios.findByPk(id);
       if (!usuario) {
         return { error: "Usuario no encontrado" };
       }
