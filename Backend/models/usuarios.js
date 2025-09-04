@@ -3,27 +3,27 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Usuarios extends Model {
     static associate(models) {
-      Usuarios.hasOne(models.Historialclinico, {
+      Usuarios.hasOne(models.historialclinico, {
         foreignKey: "id_usuario",
         as: "historial_medico",
       });
-      Usuarios.hasMany(models.Citas, {
+      Usuarios.hasMany(models.citas, {
         foreignKey: "id_usuario",
         as: "citas_paciente",
       });
-      Usuarios.hasMany(models.Citas, {
+      Usuarios.hasMany(models.citas, {
         foreignKey: "id_doctor",
         as: "citas_doctor",
       });
-      Usuarios.hasMany(models.Procedimientos, {
+      Usuarios.hasMany(models.procedimientos, {
         foreignKey: "id_usuario",
         as: "Procedimientos",
       });
-      Usuarios.hasMany(models.Ordenes, {
+      Usuarios.hasMany(models.ordenes, {
         foreignKey: "id_usuario",
         as: "ordenes",
       });
-      Usuarios.hasMany(models.Carrito, {
+      Usuarios.hasMany(models.carrito, {
         foreignKey: "id_usuario",
         as: "carritos",
       });

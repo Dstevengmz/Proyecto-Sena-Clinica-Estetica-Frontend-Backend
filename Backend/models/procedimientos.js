@@ -3,17 +3,17 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Procedimientos extends Model {
     static associate(models) {
-      Procedimientos.belongsTo(models.Usuarios, {
+      Procedimientos.belongsTo(models.usuarios, {
         foreignKey: "id_usuario",
         as: "usuario",
       });
-      Procedimientos.belongsToMany(models.Ordenes, {
+      Procedimientos.belongsToMany(models.ordenes, {
         through: "orden_procedimientos",
         foreignKey: "id_procedimiento",
         otherKey: "id_orden",
         as: "ordenes",
       });
-      Procedimientos.hasMany(models.Carrito, {
+      Procedimientos.hasMany(models.carrito, {
       foreignKey: "id_procedimiento",
       as: "carritos"
     });
