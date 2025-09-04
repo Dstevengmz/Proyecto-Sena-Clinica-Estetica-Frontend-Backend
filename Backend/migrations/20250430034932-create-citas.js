@@ -12,7 +12,7 @@ module.exports = {
       id_orden: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'Ordenes',
+          model: 'ordenes',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -21,7 +21,7 @@ module.exports = {
       id_usuario: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'Usuarios',
+          model: 'usuarios',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -30,7 +30,7 @@ module.exports = {
       id_doctor: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'Usuarios',
+          model: 'usuarios',
           key: 'id'
         },
         onUpdate: 'CASCADE',

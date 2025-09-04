@@ -12,7 +12,7 @@ module.exports = {
       id_usuario: {
         type: Sequelize.INTEGER,
         references: {
-          model: "Usuarios",
+          model: "usuarios",
           key: "id",
         },
         onUpdate: "CASCADE",
