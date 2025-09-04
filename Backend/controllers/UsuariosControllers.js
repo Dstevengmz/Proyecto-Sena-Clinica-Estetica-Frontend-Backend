@@ -25,7 +25,7 @@ class UsuariosController {
       res.status(500).json({ error: "Error al obtener doctores" });
     }
   }
-    async listarUsuarios(req, res) {
+  async listarSoloUsuarios(req, res) {
     try {
       const usuarios = await usuariosService.listarSoloUsuarios();
       res.json(usuarios);

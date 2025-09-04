@@ -26,7 +26,16 @@ class UsuariosService {
     try {
       return await Usuarios.findAll({
         where: { rol: "usuario", estado: true },
-        attributes: ["id", "nombre", "correo", "numerodocumento"],
+        attributes: [
+          "id",
+          "nombre",
+          "tipodocumento",
+          "numerodocumento",
+          "correo",
+          "rol",
+          "estado",
+          "genero",
+        ],
       });
     } catch (error) {
       console.error("Error al listar solo usuarios:", error);

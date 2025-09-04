@@ -10,7 +10,7 @@ router.post("/iniciarsesion",verificarIntentos, usuariosController.iniciarSesion
 // Permitir que doctores y asistentes puedan listar usuarios
 router.get("/listarusuarios",authorization,verificarRol(["doctor", "asistente"]), usuariosController.listarUsuarios);
 router.get("/doctores", authorization, usuariosController.listarDoctores);
-router.get("/usuarios", authorization, usuariosController.listarUsuarios);
+router.get("/usuarios", authorization, usuariosController.listarSoloUsuarios);
 router.get("/buscarusuarios/:id", usuariosController.buscarUsuarios);
 // Registro público: no requiere token ni rol; el backend forzará rol "usuario"
 router.post("/crearusuarios", validarUsuarioPublico, usuariosController.crearUsuarios);
