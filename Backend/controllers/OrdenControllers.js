@@ -1,6 +1,19 @@
 const ordenService = require("../services/OrdenServices");
 
 class OrdenController {
+  async listarOrdenesElegiblesParaProcedimiento(req, res) {
+    try {
+      const { usuarioId } = req.params;
+      if (!usuarioId || isNaN(Number(usuarioId))) {
+        return res.status(400).json({ error: "usuarioId inválido" });
+      }
+      const ordenes = await ordenService.listarOrdenesEvaluacionRealizadaPorUsuario(Number(usuarioId));
+      res.json(ordenes);
+    } catch (e) {
+      console.log("Error al listar órdenes elegibles:", e);
+      res.status(500).json({ error: "Error al obtener las órdenes elegibles" });
+    }
+  }
   async listarMisOrdenes(req, res) {
     try {
       const usuarioId = req.usuario.id;

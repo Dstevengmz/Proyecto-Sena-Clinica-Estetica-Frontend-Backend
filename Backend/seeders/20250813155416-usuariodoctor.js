@@ -1,29 +1,47 @@
 'use strict';
+require('dotenv').config();
 const bcrypt = require('bcrypt');
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const password = await bcrypt.hash('123456', 10);
+    const now = new Date();
+    const nombre = process.env.ADMIN_NAME;
+    const correo = process.env.ADMIN_CORREO;
+    const tipodocumento=process.env.ADMIN_TIPODOCUMENTO;
+    const numerodocumento=process.env.ADMIN_NUMERODOCUMENTO;
+    const telefono=process.env.ADMIN_TELEFONO;
+    const direccion=process.env.ADMIN_DIRECCION;
+    const rol=process.env.ADMIN_ROL;
+    const genero=process.env.ADMIN_GENERO;
+    const fecha_nacimiento=process.env.ADMIN_FECHANACIMIENTO;
+    const ocupacion=process.env.ADMIN_OCUPACION;
+    const estado_civil=process.env.ADMIN_ESTADOCIVIL;
+    const terminos_condiciones=process.env.ADMIN_TERMINOSCONDICIONES;
+    const estado =process.env.ADMIN_ESTADO;
+
+
+    const plainPassword = process.env.ADMIN_PASSWORD;
+    const hashed = await bcrypt.hash(plainPassword, 10);
     await queryInterface.bulkInsert('Usuarios', [
       {
-        nombre: 'Doctor x',
-        estado: true,
-        tipodocumento: 'Cedula de Ciudadania',
-        numerodocumento: '1245789423',
-        correo: 'doctor@gmail.com',
-        contrasena: password,
-        rol: 'doctor',
-        telefono: 3001234567,
-        direccion: 'Cra 1 # 2-3',
-        fecha_registro: new Date(),
-        genero: 'Masculino',
-        fecha_nacimiento: new Date('1985-05-10'),
-        ocupacion: 'Médico Estético',
-        estado_civil: 'Soltero',
-        terminos_condiciones: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        nombre,
+        estado,
+        tipodocumento,
+        numerodocumento,
+        correo,
+        contrasena: hashed,
+        rol,
+        telefono,
+        direccion,
+        fecha_registro: now,
+        genero,
+        fecha_nacimiento,
+        ocupacion,
+        estado_civil,
+        terminos_condiciones,
+        createdAt: now,
+        updatedAt: now,
       },
     ], {});
   },

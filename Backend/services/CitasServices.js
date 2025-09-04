@@ -144,7 +144,7 @@ class HistorialClinicoService {
       where: { id_usuario: data.id_usuario },
     });
 
-    if (!tieneCitasPrevias) {
+  if (!tieneCitasPrevias) {
       // Primera cita
       if (carrito.length === 0) {
         throw new Error(
@@ -168,6 +168,29 @@ class HistorialClinicoService {
           );
         }
         data.id_orden = nuevaOrden.id;
+      } else {
+        // Sin carrito: validar reglas para procedimiento basado en evaluación realizada
+        if (data.tipo === "procedimiento") {
+          if (!data.id_orden) {
+            throw new Error(
+              "Debe seleccionar una orden asociada a una evaluación realizada para agendar el procedimiento."
+            );
+          }
+          // Verificar que exista una cita de evaluación realizada ligada a esa orden y a ese usuario
+          const evaluacionRealizada = await Citas.findOne({
+            where: {
+              id_usuario: data.id_usuario,
+              id_orden: data.id_orden,
+              tipo: "evaluacion",
+              estado: "realizada",
+            },
+          });
+          if (!evaluacionRealizada) {
+            throw new Error(
+              "La orden seleccionada no está asociada a una evaluación realizada para este usuario."
+            );
+          }
+        }
       }
     }
     const creacita = await Citas.create(data);
@@ -323,17 +346,21 @@ class HistorialClinicoService {
       const FechaFin = moment
         .tz(`${fecha}T23:59:59`, "America/Bogota")
         .toDate();
-
-      console.log("Start Date:", FechaInicio); // Verificar en consola
-      console.log("End Date:", FechaFin); // Verificar en consola
+      // Verificar en consola
+      console.log("Start Date:", FechaInicio); 
+      // Verificar en consola
+      console.log("End Date:", FechaFin); 
 
       // Realizamos la consulta con las fechas ajustadas y solo las citas del doctor
       return await Citas.findAll({
         where: {
-          id_doctor: doctorId, // Filtramos por el ID del doctor
+          // Filtramos por el ID del doctor
+          id_doctor: doctorId, 
           fecha: {
-            [Op.gte]: FechaInicio, // Mayor o igual al inicio del día
-            [Op.lte]: FechaFin, // Menor o igual al final del día
+            // Mayor o igual al inicio del día
+            [Op.gte]: FechaInicio, 
+            // Menor o igual al final del día
+            [Op.lte]: FechaFin, 
           },
         },
       });
@@ -359,16 +386,19 @@ class HistorialClinicoService {
       const RangoFin = moment
         .tz(`${hasta}T23:59:59`, "America/Bogota")
         .toDate();
-
-      console.log("Start Date:", RangoInicio); // Verificar la fecha de inicio
-      console.log("End Date:", RangoFin); // Verificar la fecha de fin
+      // Verificar la fecha de inicio
+      console.log("Start Date:", RangoInicio); 
+      // Verificar la fecha de fin
+      console.log("End Date:", RangoFin); 
 
       // Realizar la consulta filtrada por doctor y el rango de fechas
       return await Citas.findAll({
         where: {
-          id_doctor: doctorId, // Filtrar por el ID del doctor
+          // Filtrar por el ID del doctor
+          id_doctor: doctorId, 
           fecha: {
-            [Op.between]: [RangoInicio, RangoFin], // Filtrar por el rango de fechas
+            // Filtrar por el rango de fechas
+            [Op.between]: [RangoInicio, RangoFin], 
           },
         },
       });

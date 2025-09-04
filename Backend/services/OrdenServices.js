@@ -1,6 +1,7 @@
 const {
   Ordenes,
   Procedimientos,
+  Citas,
 } = require("../models");
 
 class OrdenServices {
@@ -11,12 +12,44 @@ class OrdenServices {
         include: [
           {
             model: Procedimientos,
+            as: "procedimientos",
             through: { attributes: [] },
           },
         ],
       });
     } catch (e) {
       console.log("Error al listar órdenes por usuario:", e);
+    }
+  }
+
+  async listarOrdenesEvaluacionRealizadaPorUsuario(id_usuario) {
+    try {
+      // Buscar citas de evaluación realizadas del usuario y obtener los id_orden únicos
+      const citasEvaluacion = await Citas.findAll({
+        where: {
+          id_usuario,
+          tipo: "evaluacion",
+          estado: "realizada",
+        },
+        attributes: ["id_orden"],
+      });
+
+      const ordenIds = [...new Set(citasEvaluacion.map((c) => c.id_orden).filter(Boolean))];
+      if (ordenIds.length === 0) return [];
+
+      return await Ordenes.findAll({
+        where: { id_usuario, id: ordenIds },
+        include: [
+          {
+            model: Procedimientos,
+            as: "procedimientos",
+            through: { attributes: [] },
+          },
+        ],
+      });
+    } catch (e) {
+      console.log("Error al listar órdenes con evaluación realizada por usuario:", e);
+      throw e;
     }
   }
 
