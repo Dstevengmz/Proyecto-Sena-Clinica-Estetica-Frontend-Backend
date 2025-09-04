@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { Usuarios } = require("../models");
+const { usuarios } = require("../models");
 const authorization = async (req, res, next) => {
   const token = req.header("Authorization");
   if (!token) {
@@ -12,7 +12,7 @@ const authorization = async (req, res, next) => {
     // Acepta "Bearer <token>" con cualquier capitalización y espacios
     const tokenBearer = token.replace(/^Bearer\s+/i, "").trim();
     const respuestaJwT = jwt.verify(tokenBearer, process.env.JWT_SECRET);
-    const usuario = await Usuarios.findByPk(respuestaJwT.id);
+    const usuario = await usuarios.findByPk(respuestaJwT.id);
     if (!usuario) {
       console.log("Authorization: usuario no encontrado para token válido");
       return res.status(404).json({ mensaje: "Usuario no encontrado" });
