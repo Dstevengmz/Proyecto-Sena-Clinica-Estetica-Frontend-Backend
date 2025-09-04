@@ -67,15 +67,15 @@ class HistorialClinicoService {
           },
           { transaction: t }
         );
-        const carrito = await carrito.findAll({
+        const carrit = await carrito.findAll({
           where: { id_usuario },
           transaction: t,
         });
-        console.log("Carrito encontrado:", carrito);
-        if (carrito.length === 0) {
+        console.log("Carrito encontrado:", carrit);
+        if (carrit.length === 0) {
           throw new Error("El carrito está vacío.");
         }
-        const registros = carrito.map((item) => ({
+        const registros = carrit.map((item) => ({
           id_orden: nuevaOrden.id,
           id_procedimiento: item.id_procedimiento,
         }));
@@ -89,6 +89,9 @@ class HistorialClinicoService {
     }
   }
 
+
+
+  
   async buscarLasCitas(id) {
     return await citas.findByPk(id, {
       include: [
