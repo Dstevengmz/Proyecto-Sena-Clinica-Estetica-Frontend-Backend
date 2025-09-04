@@ -19,11 +19,10 @@ module.exports = {
     const estado_civil=process.env.ADMIN_ESTADOCIVIL;
     const terminos_condiciones=process.env.ADMIN_TERMINOSCONDICIONES;
     const estado =process.env.ADMIN_ESTADO;
-
-
     const plainPassword = process.env.ADMIN_PASSWORD;
     const hashed = await bcrypt.hash(plainPassword, 10);
-    await queryInterface.bulkInsert('Usuarios', [
+    
+    await queryInterface.bulkInsert('usuarios', [
       {
         nombre,
         estado,
@@ -46,6 +45,6 @@ module.exports = {
     ], {});
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('Usuarios', { correo: 'doctor@gmail.com' });
+    await queryInterface.bulkDelete('usuarios', { correo: 'doctor@gmail.com' });
   }
 };
