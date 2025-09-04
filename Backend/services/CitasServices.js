@@ -140,13 +140,13 @@ class HistorialClinicoService {
       where: { id_usuario: data.id_usuario },
     });
 
-    const carrito = await carrito.findAll({
+    const carrit = await carrito.findAll({
       where: { id_usuario: data.id_usuario },
     });
 
   if (!tieneCitasPrevias) {
       // Primera cita
-      if (carrito.length === 0) {
+      if (carrit.length === 0) {
         throw new Error(
           "Debes agregar al menos un procedimiento para agendar la primera cita de evaluación."
         );
@@ -160,7 +160,7 @@ class HistorialClinicoService {
       }
       data.id_orden = nuevaOrden.id;
     } else {
-      if (carrito.length > 0) {
+      if (carrit.length > 0) {
         const nuevaOrden = await this.crearOrdenDesdeCarrito(data.id_usuario);
         if (!nuevaOrden || !nuevaOrden.id) {
           throw new Error(
