@@ -4,6 +4,7 @@ const Citas = require('./routers/CitasRouters');
 const Procedimientos = require('./routers/ProcedimientoRouters');
 const Ordenes= require('./routers/OrdenesRouters');
 const OrdenProcedimiento= require('./routers/OrdenProcedimientoRouters');
+const Examenes = require('./routers/ExamenRouters');
 const Carrito= require('./routers/CarritoRouters');
 const express = require('express');
 const cors = require('cors');
@@ -39,6 +40,7 @@ app.use('/apiprocedimientos',Procedimientos);
 app.use('/apiordenes',Ordenes);
 app.use('/apiordenprocedimiento',OrdenProcedimiento);
 app.use('/apicarrito',Carrito);
+app.use('/apiexamenes', Examenes);
 
 server.listen(puerto, () => {
     console.log(`Servidor corriendo en http://localhost:${puerto}`);

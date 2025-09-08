@@ -7,6 +7,7 @@ const {
   ordenprocedimiento,
   historialclinico,
   procedimientos,
+  examen,
 } = require("../models");
 const { EnviarCorreo } = require("../assets/corre");
 const { ValidarLaCita } = require("../assets/Validarfecharegistro");
@@ -50,6 +51,10 @@ class HistorialClinicoService {
           model: usuarios,
           as: "doctor",
           attributes: ["nombre", "ocupacion"],
+        },
+        {
+          model: examen,
+          as: 'examenes',
         },
       ],
       order: [["id", "ASC"]],
@@ -120,6 +125,10 @@ class HistorialClinicoService {
               through: { attributes: [] },
             },
           ],
+        },
+        {
+          model: examen,
+          as: 'examenes',
         },
         {
           model: usuarios,
@@ -469,6 +478,10 @@ class HistorialClinicoService {
               through: { attributes: [] },
             },
           ],
+        },
+        {
+          model: examen,
+          as: 'examenes',
         },
       ],
       order: [["fecha", "ASC"]],
