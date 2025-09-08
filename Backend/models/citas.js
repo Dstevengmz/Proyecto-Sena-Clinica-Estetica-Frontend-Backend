@@ -35,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       ),
       tipo: DataTypes.ENUM("evaluacion", "procedimiento"),
       observaciones: DataTypes.TEXT,
+  examenes_requeridos: DataTypes.TEXT,
     },
     {
       sequelize,

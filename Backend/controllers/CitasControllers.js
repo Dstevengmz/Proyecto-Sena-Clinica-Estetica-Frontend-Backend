@@ -1,4 +1,5 @@
 const citasService = require("../services/CitasServices");
+const PDFDocument = require('pdfkit');
 
 class CitasControllers {
   async listarCitas(req, res) {
@@ -47,7 +48,7 @@ class CitasControllers {
   async actualizarCitas(req, res) {
     try {
       const { id } = req.params;
-      const { id_usuario, id_doctor, fecha, estado, tipo, observaciones } =
+  const { id_usuario, id_doctor, fecha, estado, tipo, observaciones, examenes_requeridos } =
         req.body;
       if (isNaN(id)) {
         return res.status(400).json({ error: "ID inválido" });
@@ -58,7 +59,8 @@ class CitasControllers {
         fecha,
         estado,
         tipo,
-        observaciones,
+  observaciones,
+  examenes_requeridos,
       });
       if (!resultado[0]) {
         return res.status(404).json({ error: "Citas no encontrado" });
@@ -204,6 +206,94 @@ class CitasControllers {
     } catch (e) {
       const status = e.status || 500;
       res.status(status).json({ error: e.message || "Error en el servidor al actualizar la cita" });
+    }
+  }
+  async generarPDFExamenes(req, res) {
+    try {
+      const { id } = req.params;
+      const cita = await citasService.buscarLasCitas(id);
+      if (!cita) return res.status(404).json({ error: 'Cita no encontrada' });
+      if (!cita.examenes_requeridos) return res.status(400).json({ error: 'La cita no tiene exámenes requeridos' });
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="orden_examenes_cita_${id}.pdf"`);
+      const doc = new PDFDocument({ margin: 40 });
+      doc.pipe(res);
+
+      const ancho = doc.page.width;
+      const alto = doc.page.height;
+      const fechaLocal = (() => {
+        try { return new Date(cita.fecha).toLocaleString('es-CO'); } catch { return String(cita.fecha); }
+      })();
+
+      // Borde exterior
+      doc.lineWidth(1.2).rect(30, 30, ancho - 60, alto - 60).stroke('#000');
+
+      // Watermark (símbolo médico)
+      doc.save();
+      doc.fontSize(200).fillColor('#666').opacity(0.05).text('⚕', 0, alto/3.5, { align: 'center' });
+      doc.restore();
+
+      // Encabezado (nombre doctor / clínica)
+      doc.font('Helvetica-Bold').fontSize(18).fillColor('#000').text((cita.doctor?.nombre || 'DR. NO REGISTRADO').toUpperCase(), 0, 50, { align: 'center' });
+      doc.font('Helvetica').fontSize(12).text(cita.doctor?.ocupacion || 'Médico', { align: 'center' });
+      doc.moveDown(0.2);
+      doc.lineWidth(3).moveTo(60, doc.y + 5).lineTo(ancho - 60, doc.y + 5).stroke('#000');
+      doc.moveDown(1.2);
+
+      // Sección datos paciente / cita
+      const startX = 55;
+      const label = (y, titulo, valor) => {
+        doc.font('Helvetica-Bold').fontSize(9).fillColor('#000').text(titulo.toUpperCase()+':', startX, y, { continued: true });
+        doc.font('Helvetica').fontSize(10).fillColor('#111').text(' '+(valor || '—'));
+      };
+      let y = doc.y;
+      label(y, 'Nombre Paciente', cita.usuario?.nombre); y = doc.y + 4;
+      label(y, 'Fecha Cita', fechaLocal); y = doc.y + 4;
+      label(y, 'Tipo', cita.tipo); y = doc.y + 4;
+      label(y, 'ID Cita', cita.id); y = doc.y + 10;
+
+      // Separador
+      doc.moveTo(55, y).lineTo(ancho - 55, y).stroke('#999');
+      y += 15;
+
+      // Sección Exámenes
+      doc.font('Helvetica-Bold').fontSize(13).fillColor('#000').text('PRESCRIPCIÓN / ORDEN DE EXÁMENES', 0, y, { align: 'left' });
+      y = doc.y + 8;
+
+      doc.font('Helvetica-Bold').fontSize(10).text('Se solicita:', 55, y);
+      y = doc.y + 4;
+      const examLines = cita.examenes_requeridos.split(/\r?\n+/).filter(l=>l.trim());
+      doc.font('Helvetica').fontSize(11).fillColor('#111');
+      examLines.forEach((linea, idx) => {
+        const safe = linea.trim();
+        doc.text(`${idx+1}. ${safe}`, { width: ancho - 110, align: 'left' });
+      });
+      y = doc.y + 12;
+
+      // Observaciones / Diagnóstico (usa observaciones si hay)
+      if (cita.observaciones) {
+        doc.font('Helvetica-Bold').fontSize(10).fillColor('#000').text('Observaciones / Diagnóstico:', 55, y);
+        y = doc.y + 4;
+        doc.font('Helvetica').fontSize(10).fillColor('#111').text(cita.observaciones, { width: ancho - 110 });
+        y = doc.y + 12;
+      }
+
+      // Línea firma
+      const firmaY = alto - 170;
+      doc.moveTo(ancho - 250, firmaY).lineTo(ancho - 70, firmaY).stroke('#000');
+      doc.font('Helvetica-Bold').fontSize(9).text('SELLO Y FIRMA DEL MÉDICO', ancho - 250, firmaY + 5, { width: 180, align: 'center' });
+
+      // Footer
+      const footerY = alto - 90;
+      doc.moveTo(55, footerY).lineTo(ancho - 55, footerY).stroke('#000');
+      doc.font('Helvetica-Bold').fontSize(10).text('Clínica Rejuvenezk', 55, footerY + 8, { align: 'left' });
+      doc.font('Helvetica').fontSize(8).fillColor('#333').text('Documento generado automáticamente - No requiere firma manuscrita si contiene firma digital.', 55, footerY + 25, { width: ancho - 110, align: 'center' });
+      doc.fontSize(7).fillColor('#777').text(`Generado: ${new Date().toLocaleString('es-CO')}`, 55, footerY + 40, { align: 'center' });
+
+      doc.end();
+    } catch (e) {
+      console.error('Error generando PDF exámenes:', e);
+      res.status(500).json({ error: 'Error al generar PDF' });
     }
   }
   

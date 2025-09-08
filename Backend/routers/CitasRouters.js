@@ -19,6 +19,8 @@ router.get("/citas/tipo/:doctorId", CitaController.citasPorTipo);
 router.get("/miscitas", authorization, verificarRol(["usuario", "doctor", "asistente"]), CitaController.misCitas);
 router.patch("/editarestadocita/:id",authorization,verificarRol(["doctor"]),CitaController.actualizarEstadoCita
 );
+// Descargar PDF de exámenes requeridos
+router.get('/orden-examenes/pdf/:id', authorization, verificarRol(["usuario","doctor","asistente"]), CitaController.generarPDFExamenes);
 
 
 module.exports = router;

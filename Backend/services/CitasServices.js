@@ -196,17 +196,21 @@ class HistorialClinicoService {
               tipo: "evaluacion",
               estado: "realizada",
             },
+            order: [["fecha", "DESC"]],
           });
           if (!evaluacionRealizada) {
             throw new Error(
               "La orden seleccionada no está asociada a una evaluación realizada para este usuario."
             );
           }
+          // Propagar exámenes requeridos desde la última evaluación realizada si no se envió explícito
+          if (evaluacionRealizada.examenes_requeridos && !data.examenes_requeridos) {
+            data.examenes_requeridos = evaluacionRealizada.examenes_requeridos;
+          }
         }
       }
     }
     const creacita = await citas.create(data);
-    let usuario;
     let doctor;
     try {
       usuario = await usuarios.findByPk(data.id_usuario);
