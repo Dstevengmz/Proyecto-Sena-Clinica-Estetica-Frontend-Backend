@@ -1,13 +1,17 @@
-const { examen } = require('../models');
-
+const { examen,citas } = require('../models');
 class ExamenServices {
   async subirArchivos({ id_cita, archivos }) {
     if (!archivos || archivos.length === 0) {
       throw new Error('No se enviaron archivos');
     }
+    
+    const cita = await citas.findByPk(id_cita);
+    if (!cita) throw new Error('Cita no encontrada');
+    if (cita.examenes_cargados) {
+      throw new Error('Los exámenes ya fueron marcados como finalizados para esta cita');
+    }
     const registros = await Promise.all(
       archivos.map(async (file) => {
-        // Log para depuración de estructura proporcionada por multer-storage-cloudinary
         console.log('Archivo subido Cloudinary:', {
           originalname: file.originalname,
           path: file.path,
@@ -17,13 +21,12 @@ class ExamenServices {
           mimetype: file.mimetype,
           size: file.size,
         });
-        // Guardar public_id (file.filename) para generar URL firmada luego.
-        const publicId = file.filename; // ej: examenes/123_nombre.pdf
+        const publicId = file.filename; 
         if (!publicId) throw new Error('No se obtuvo public_id del archivo');
         return await examen.create({
           id_cita,
           nombre_examen: file.originalname,
-          archivo_examen: publicId, // almacenamos public_id, NO URL
+          archivo_examen: publicId, 
           observaciones: null,
         });
       })

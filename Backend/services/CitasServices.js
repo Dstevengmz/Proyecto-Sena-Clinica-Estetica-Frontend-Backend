@@ -156,37 +156,75 @@ class HistorialClinicoService {
       where: { id_usuario: data.id_usuario },
     });
 
+    const rolCreador = data._rol_creador; // inyectado desde el controlador
+    const esRolUsuario = rolCreador === 'usuario';
+    const esProcedimiento = data.tipo === 'procedimiento';
+
+    // Regla de negocio original para usuarios finales: debe haber servicio en carrito (primera evaluación o generación de nueva orden)
+    // Ajuste: si asistente/doctor crea un procedimiento sobre una orden existente NO exigir carrito.
+    if (carrit.length === 0) {
+      if (esRolUsuario) {
+        const err = new Error(
+          "No es posible registrar la cita porque no tienes un servicio seleccionado en tu carrito."
+        );
+        err.status = 400;
+        throw err;
+      }
+      // Asistente/doctor sin carrito: permitido sólo si es procedimiento y trae id_orden
+      if (!esProcedimiento) {
+        const err = new Error(
+          "Para crear esta cita se requiere un procedimiento en el carrito o seleccionar el tipo adecuado."
+        );
+        err.status = 400;
+        throw err;
+      }
+    }
+
   if (!tieneCitasPrevias) {
       // Primera cita
-      if (carrit.length === 0) {
-        throw new Error(
-          "Debes agregar al menos un procedimiento para agendar la primera cita de evaluación."
-        );
+      if (esRolUsuario) {
+        // Usuario: se crea evaluación y orden desde carrito obligatorio
+        data.tipo = "evaluacion";
+        const nuevaOrden = await this.crearOrdenDesdeCarrito(data.id_usuario);
+        if (!nuevaOrden || !nuevaOrden.id) {
+          const err = new Error(
+            "No se pudo crear la orden. Asegúrate de haber seleccionado un procedimiento en tu carrito."
+          );
+          err.status = 400;
+          throw err;
+        }
+        data.id_orden = nuevaOrden.id;
+      } else {
+        // Asistente/doctor: si quiere crear directamente un procedimiento inicial necesita id_orden válida (ya evaluada) -> validación más abajo lo confirmará
+        // Si no trae id_orden, podemos permitir evaluación sin carrito? Mejor exigir que especifique tipo eval o procedimiento coherente.
+        if (!esProcedimiento) {
+          // Crear evaluación manual sin carrito no tiene sentido, abortamos para claridad.
+          const err = new Error("Debe existir un servicio en carrito para crear la primera evaluación del paciente.");
+          err.status = 400;
+          throw err;
+        }
+        // Permitimos continuar: validación de evaluación realizada ligada a orden se hará luego.
       }
-      data.tipo = "evaluacion";
-      const nuevaOrden = await this.crearOrdenDesdeCarrito(data.id_usuario);
-      if (!nuevaOrden || !nuevaOrden.id) {
-        throw new Error(
-          "No se pudo crear la orden. Asegúrate de haber seleccionado un procedimiento en tu carrito."
-        );
-      }
-      data.id_orden = nuevaOrden.id;
     } else {
       if (carrit.length > 0) {
         const nuevaOrden = await this.crearOrdenDesdeCarrito(data.id_usuario);
         if (!nuevaOrden || !nuevaOrden.id) {
-          throw new Error(
+          const err = new Error(
             "No se pudo crear la orden. Asegúrate de haber seleccionado un procedimiento en tu carrito."
           );
+          err.status = 400;
+          throw err;
         }
         data.id_orden = nuevaOrden.id;
       } else {
         // Sin carrito: validar reglas para procedimiento basado en evaluación realizada
         if (data.tipo === "procedimiento") {
           if (!data.id_orden) {
-            throw new Error(
+            const err = new Error(
               "Debe seleccionar una orden asociada a una evaluación realizada para agendar el procedimiento."
             );
+            err.status = 400;
+            throw err;
           }
           // Verificar que exista una cita de evaluación realizada ligada a esa orden y a ese usuario
           const evaluacionRealizada = await citas.findOne({
@@ -199,9 +237,11 @@ class HistorialClinicoService {
             order: [["fecha", "DESC"]],
           });
           if (!evaluacionRealizada) {
-            throw new Error(
+            const err = new Error(
               "La orden seleccionada no está asociada a una evaluación realizada para este usuario."
             );
+            err.status = 400;
+            throw err;
           }
           // Propagar exámenes requeridos desde la última evaluación realizada si no se envió explícito
           if (evaluacionRealizada.examenes_requeridos && !data.examenes_requeridos) {
@@ -211,8 +251,9 @@ class HistorialClinicoService {
       }
     }
     const creacita = await citas.create(data);
-    let doctor;
+    let usuario, doctor;
     try {
+      // Obtener instancias sin sobrescribir el modelo 'usuarios'
       usuario = await usuarios.findByPk(data.id_usuario);
       doctor = await usuarios.findByPk(data.id_doctor);
       if (!usuario) {
@@ -247,7 +288,7 @@ class HistorialClinicoService {
       <p>Fecha y hora de la cita: <strong>${data.fecha} horas</strong></p>
       <p>Doctor: <strong>${doctor.nombre}</strong></p>
       <p>Tipo de cita: <strong>${data.tipo}</strong></p>
-      <p>Tu cita en <strong>Clínica Rejuvenezk</strong> fue creada exitosamente.</p>
+      <p>Tu cita en <strong>Clinestetica</strong> fue creada exitosamente.</p>
       <p>Gracias por confiar en nosotros. Te estaremos contactando pronto.</p>
     `,
       });
@@ -256,11 +297,11 @@ class HistorialClinicoService {
     }
     try {
       await this.guardarYEmitirNotificacion(global.io, data.id_doctor, {
-        mensaje: `📅 Nueva cita con ${usuario.nombre} para el ${data.fecha}`,
+        mensaje: `📅 Nueva cita con ${usuario?.nombre || "Paciente"} para el ${data.fecha}`,
         fecha: new Date().toISOString(),
         tipo: "cita",
         citaId: creacita.id,
-        paciente: usuario.nombre,
+        paciente: usuario?.nombre,
         fechaCita: data.fecha,
         tipoCita: data.tipo,
         leida: false,
@@ -289,10 +330,10 @@ class HistorialClinicoService {
   }
 
   async eliminarLasCitas(id) {
-    const citas = await citas.findByPk(id);
+    const cita = await citas.findByPk(id);
 
-    if (citas) {
-      return await citas.destroy();
+    if (cita) {
+      return await cita.destroy();
     }
     return null;
   }
@@ -306,7 +347,7 @@ class HistorialClinicoService {
     }
   }
 
-  async obtenerCitasPorFecha(fecha) {
+  async obtenerCitasPorFecha(fecha, doctorId = null) {
     const inicioDelDia = new Date(`${fecha}T00:00:00`);
     const finDelDia = new Date(`${fecha}T23:59:59`);
 
@@ -314,12 +355,17 @@ class HistorialClinicoService {
       throw new Error("Fecha no Valida");
     }
 
-    return await citas.findAll({
-      where: {
-        fecha: {
-          [Op.between]: [inicioDelDia, finDelDia],
-        },
+    const where = {
+      fecha: {
+        [Op.between]: [inicioDelDia, finDelDia],
       },
+    };
+    if (doctorId) {
+      where.id_doctor = doctorId;
+    }
+
+    return await citas.findAll({
+      where,
       include: {
         model: usuarios,
         as: "usuario",
@@ -519,6 +565,61 @@ class HistorialClinicoService {
         throw error;
       }
     }
+  
+
+  async marcarExamenesSubidos({ id_cita, id_usuario_que_confirma }) {
+    const cita = await citas.findByPk(id_cita, {
+      include: [
+        { model: usuarios, as: 'usuario', attributes: ['id','nombre','correo'] },
+        { model: usuarios, as: 'doctor', attributes: ['id','nombre','correo'] },
+      ],
+    });
+    if (!cita) throw new Error('Cita no encontrada');
+    if (parseInt(cita.id_usuario) !== parseInt(id_usuario_que_confirma)) {
+      const err = new Error('No autorizado para marcar esta cita');
+      err.status = 403;
+      throw err;
+    }
+    if (cita.examenes_cargados) {
+      return cita; 
+    }
+    cita.examenes_cargados = true;
+    await cita.save();
+
+    try {
+      if (cita.doctor?.correo) {
+        await EnviarCorreo({
+            receipients: cita.doctor.correo,
+            subject: 'Paciente ha subido exámenes',
+            message: `
+              <h2>Hola ${cita.doctor.nombre},</h2>
+              <p>El paciente<br><strong>${cita.usuario?.nombre || 'Paciente'}</strong><br>ha completado la carga de exámenes</p><br>
+              <p>Puedes revisarlos ingresando al panel clínico.</p> <br>
+              <p>Fecha cita: <strong>${cita.fecha}</strong></p>
+            `,
+        });
+      }
+    } catch (e) {
+      console.error('Error enviando correo de exámenes cargados:', e);
+    }
+
+    try {
+      if (global.io && cita.id_doctor) {
+        await this.guardarYEmitirNotificacion(global.io, cita.id_doctor, {
+          mensaje: `📄 El paciente \n ${cita.usuario?.nombre} subió sus exámenes`,
+          fecha: new Date().toISOString(),
+          tipo: 'examenes',
+          citaId: cita.id,
+          paciente: cita.usuario?.nombre,
+          leida: false,
+          ruta: `/citas/${cita.id}`, 
+        });
+      }
+    } catch (e) {
+      console.error('Error emitiendo notificación de exámenes:', e);
+    }
+    return cita;
+  }
   
 }
 module.exports = new HistorialClinicoService();

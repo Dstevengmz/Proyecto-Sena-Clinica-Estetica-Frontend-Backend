@@ -5,6 +5,7 @@ Darwin
 npx sequelize-cli model:generate --name Usuarios --attributes nombre:string,estado:boolean,email:string,contrasena:string,rol:string,telefono:integer,direccion:string,fecha_registro:date,genero:string,fecha_nacimiento:date,ocupacion:string,estado_civil:string,terminos_condiciones:Boolean
 
 
+
 # Comando Modelo Historial Clinico
 npx sequelize-cli model:generate --name Historialclinico --attributes id_usuario:integer,enfermedades:text,alergias:text,cirugias_previas:text,condiciones_piel:text,embarazo_lactancia:boolean,medicamentos:text,consume_tabaco:boolean,consume_alcohol:boolean,usa_anticonceptivos:boolean,detalles_anticonceptivos:text,diabetes:boolean,hipertension:boolean,historial_cancer:boolean,problemas_coagulacion:boolean,epilepsia:boolean,otras_condiciones:text
 
@@ -15,6 +16,9 @@ npx sequelize-cli model:generate --name Citas --attributes id_usuario:integer,id
 
 # Comando Modelo Procedimientos
 npx sequelize-cli model:generate --name Procedimientos --attributes nombre:string,descripcion:text,precio:float,requiere_evaluacion:boolean,duracion:string,examenes_requeridos:text,imagen:string,categoria:string,recomendaciones_previas:text
+
+# Comando categoria procedimientos
+npx sequelize-cli model:generate --name categoriaprocedimientos --attributes nombre:string,descripcion:string,estado:boolean
 
 # Comando para  Ordenes
 npx sequelize-cli model:generate --name Ordenes --attributes id_usuario:integer,fecha_creacion:date,estado:string

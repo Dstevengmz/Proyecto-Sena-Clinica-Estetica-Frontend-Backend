@@ -8,15 +8,24 @@ module.exports = (sequelize, DataTypes) => {
         as: "usuario",
       });
       Procedimientos.belongsToMany(models.ordenes, {
-        through: "orden_procedimientos",
+        through: "ordenprocedimientos",
         foreignKey: "id_procedimiento",
         otherKey: "id_orden",
         as: "ordenes",
       });
       Procedimientos.hasMany(models.carrito, {
-      foreignKey: "id_procedimiento",
-      as: "carritos"
-    });
+        foreignKey: "id_procedimiento",
+        as: "carritos",
+      });
+      Procedimientos.belongsTo(models.categoriaprocedimientos, {
+        foreignKey: "categoriaId",
+        as: "categoria",
+      });
+      Procedimientos.hasMany(models.procedimientoimagenes, {
+        foreignKey: "procedimientoId",
+        as: "imagenes",
+        onDelete: "CASCADE",
+      });
     }
   }
   Procedimientos.init(
@@ -28,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       duracion: DataTypes.STRING,
       examenes_requeridos: DataTypes.TEXT,
       imagen: DataTypes.STRING,
-      categoria: DataTypes.STRING,
+      categoriaId: DataTypes.INTEGER,
       recomendaciones_previas: DataTypes.TEXT,
     },
     {

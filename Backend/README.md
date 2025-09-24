@@ -1,11 +1,11 @@
-# 💉 Clínica Rejuvenezk
+# 💉 Clinestetica
 
 Sistema integral de gestión para una clínica estética, 
 desarrollado como proyecto final en el SENA para optar por el título de **Desarrollador de Software**.
 
 ## 🧾 Descripción
 
-**Clínica Rejuvenezk** es una aplicación web full-stack que permite gestionar usuarios, doctores, asistentes, historial médico, citas, servicios estéticos y procedimientos, integrando herramientas modernas de desarrollo backend y frontend con soporte en tiempo real, seguridad y escalabilidad.
+**Clinestetica** es una aplicación web full-stack que permite gestionar usuarios, doctores, asistentes, historial médico, citas, servicios estéticos y procedimientos, integrando herramientas modernas de desarrollo backend y frontend con soporte en tiempo real, seguridad y escalabilidad.
 
 ---
 

@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         as: "usuario",
       });
       Ordenes.belongsToMany(models.procedimientos, {
-        through: "ordenprocedimientos",
+        through: "ordenprocedimiento",
         foreignKey: "id_orden",
         otherKey: "id_procedimiento",
         as: "procedimientos",

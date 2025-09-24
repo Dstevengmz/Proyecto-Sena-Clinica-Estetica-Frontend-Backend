@@ -3,13 +3,16 @@ const { usuarios } = require("../models");
 const authorization = async (req, res, next) => {
   const token = req.header("Authorization");
   if (!token) {
-    console.log("Authorization: token no proporcionado ->", req.method, req.originalUrl);
+    console.log(
+      "Authorization: token no proporcionado ->",
+      req.method,
+      req.originalUrl
+    );
     return res
       .status(401)
       .json({ mensaje: "Acceso denegado, token no proporcionado" });
   }
   try {
-    // Acepta "Bearer <token>" con cualquier capitalización y espacios
     const tokenBearer = token.replace(/^Bearer\s+/i, "").trim();
     const respuestaJwT = jwt.verify(tokenBearer, process.env.JWT_SECRET);
     const usuario = await usuarios.findByPk(respuestaJwT.id);
@@ -20,7 +23,11 @@ const authorization = async (req, res, next) => {
     req.usuario = usuario;
     next();
   } catch (error) {
-    console.log("Authorization: token inválido o expirado ->", req.method, req.originalUrl);
+    console.log(
+      "Authorization: token inválido o expirado ->",
+      req.method,
+      req.originalUrl
+    );
     return res.status(401).json({ mensaje: "Token inválido o expirado" });
   }
 };

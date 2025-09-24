@@ -12,6 +12,9 @@ router.get("/listarusuarios",authorization,verificarRol(["doctor", "asistente"])
 router.get("/doctores", authorization, usuariosController.listarDoctores);
 router.get("/usuarios", authorization, usuariosController.listarSoloUsuarios);
 router.get("/buscarusuarios/:id", usuariosController.buscarUsuarios);
+// Flujo de registro con verificación previa
+router.post("/preregistro", validarUsuarioPublico, usuariosController.preRegistro);
+router.post("/preregistro/confirmar", usuariosController.confirmarRegistro);
 // Registro público: no requiere token ni rol; el backend forzará rol "usuario"
 router.post("/crearusuarios", validarUsuarioPublico, usuariosController.crearUsuarios);
 router.post("/crearusuariosadmin",authorization,verificarRol(["doctor"]),validarUsuario,usuariosController.crearUsuariosAdmin);

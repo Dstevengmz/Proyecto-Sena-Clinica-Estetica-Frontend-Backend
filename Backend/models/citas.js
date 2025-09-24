@@ -16,9 +16,13 @@ module.exports = (sequelize, DataTypes) => {
         as: "orden",
       });
       Citas.hasMany(models.examen, {
-        foreignKey: 'id_cita',
-        as: 'examenes',
-      })
+        foreignKey: "id_cita",
+        as: "examenes",
+      });
+      Citas.hasMany(models.consentimiento, {
+        foreignKey: "id_cita",
+        as: "consentimientos",
+      });
     }
   }
   Citas.init(
@@ -35,7 +39,13 @@ module.exports = (sequelize, DataTypes) => {
       ),
       tipo: DataTypes.ENUM("evaluacion", "procedimiento"),
       observaciones: DataTypes.TEXT,
-  examenes_requeridos: DataTypes.TEXT,
+      examenes_requeridos: DataTypes.TEXT,
+      nota_evolucion: DataTypes.TEXT,
+      examenes_cargados: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+      },
     },
     {
       sequelize,

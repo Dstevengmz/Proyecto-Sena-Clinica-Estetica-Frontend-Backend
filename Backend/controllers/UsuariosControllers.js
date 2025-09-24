@@ -50,6 +50,35 @@ class UsuariosController {
     }
   }
 
+  // Pre-registro: almacena datos temporales y envía código
+  async preRegistro(req, res) {
+    try {
+      const resultado = await usuariosService.preRegistrarUsuario(req.body);
+      if (resultado.error) {
+        return res.status(400).json({ error: resultado.error });
+      }
+      res.json(resultado);
+    } catch (e) {
+      console.error('Error en preRegistro:', e);
+      res.status(500).json({ error: 'Error en el pre-registro' });
+    }
+  }
+
+  // Confirmar registro: valida código y crea usuario definitivo
+  async confirmarRegistro(req, res) {
+    try {
+      const { correo, codigo } = req.body;
+      const resultado = await usuariosService.confirmarRegistro(correo, codigo);
+      if (resultado.error || resultado.success === false) {
+        return res.status(400).json(resultado);
+      }
+      res.json(resultado);
+    } catch (e) {
+      console.error('Error al confirmar registro:', e);
+      res.status(500).json({ error: 'Error al confirmar registro' });
+    }
+  }
+
   async crearUsuariosAdmin(req, res) {
     try {
       const nuevoUsuario = await usuariosService.crearLosUsuariosAdmin(

@@ -2,12 +2,22 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("procedimientos", {
+    await queryInterface.createTable("consentimientos", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
+      },
+      id_cita: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "citas",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       id_usuario: {
         type: Sequelize.INTEGER,
@@ -19,43 +29,30 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      nombre: {
-        type: Sequelize.STRING,
+      fecha_firma: {
+        type: Sequelize.DATE,
+        allowNull: false,
       },
-      descripcion: {
+      texto_terminos: {
         type: Sequelize.TEXT,
+        allowNull: false,
       },
-      precio: {
-        type: Sequelize.FLOAT,
-      },
-      requiere_evaluacion: {
-        type: Sequelize.BOOLEAN,
-      },
-      duracion: {
+      ruta_pdf: {
         type: Sequelize.STRING,
+        allowNull: true,
       },
-      examenes_requeridos: {
-        type: Sequelize.TEXT,
-      },
-      imagen: {
+      hash_pdf: {
         type: Sequelize.STRING,
+        allowNull: true,
       },
-      categoriaId: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: "categoriaprocedimientos",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-
-      recomendaciones_previas: {
-        type: Sequelize.TEXT,
+      ip_firma: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
+
       },
       updatedAt: {
         allowNull: false,
@@ -64,6 +61,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("procedimientos");
+    await queryInterface.dropTable("consentimientos");
   },
 };

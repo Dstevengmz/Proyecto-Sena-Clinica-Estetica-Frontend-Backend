@@ -48,6 +48,9 @@ module.exports = {
       observaciones: {
         type: Sequelize.TEXT
       },
+      nota_evolucion:{
+        type: Sequelize.TEXT
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
