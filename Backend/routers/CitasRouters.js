@@ -6,7 +6,18 @@ const {authorization,verificarRol} = require("../middleware/Authorization");
 router.get("/listarcitas",authorization,verificarRol(["doctor", "asistente","usuario"]), CitaController.listarCitas);
 router.get("/buscarcitas/:id",authorization, CitaController.buscarCitas);
 router.post("/crearcitas",authorization, CitaController.crearCitas);
-router.patch("/editarcitas/:id",authorization,verificarRol(["doctor", "asistente"]), CitaController.actualizarCitas);
+
+
+
+router.patch( "/editarcita-doctor/:id", authorization, verificarRol(["doctor", "asistente"]), CitaController.actualizarCitaDoctor
+);
+
+router.patch( "/editarcitausuario/:id", authorization, verificarRol(["usuario"]), CitaController.actualizarCitaUsuario
+);
+
+
+
+
 router.delete("/eliminarcitas/:id",authorization, CitaController.eliminarCitas);
 router.get('/horarios/:fecha',authorization, CitaController.obtenerHorariosOcupados);
 router.post("/crearordendesdecita", authorization, CitaController.crearOrdenDesdeCarrito);

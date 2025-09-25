@@ -47,12 +47,9 @@ class CitasControllers {
 
   async crearCitas(req, res) {
     try {
-      // Regla: si el rol autenticado es 'usuario' siempre forzamos tipo evaluacion.
-      // Si es 'asistente' o 'doctor' puede crear tanto evaluacion como procedimiento (backend validará reglas adicionales en el servicio).
       const payload = { ...req.body };
       const rol = req.usuario?.rol;
       if (rol === "usuario") {
-        // Usuario final no puede forzar procedimiento directamente
         if (payload.tipo && payload.tipo !== "evaluacion") {
           return res.status(400).json({
             message:
@@ -61,7 +58,6 @@ class CitasControllers {
         }
         payload.tipo = "evaluacion";
       } else {
-        // Asistente / doctor: si no envía tipo, default evaluacion
         if (!payload.tipo) payload.tipo = "evaluacion";
         if (!["evaluacion", "procedimiento"].includes(payload.tipo)) {
           return res.status(400).json({ message: "Tipo de cita inválido." });
@@ -81,42 +77,37 @@ class CitasControllers {
     }
   }
 
-  async actualizarCitas(req, res) {
-    try {
-      const { id } = req.params;
-      const {
-        id_usuario,
-        id_doctor,
-        fecha,
-        estado,
-        tipo,
-        observaciones,
-        examenes_requeridos,
-        nota_evolucion,
-      } = req.body;
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "ID inválido" });
-      }
-      let resultado = await citasService.actualizarLasCitas(id, {
-        id_usuario,
-        id_doctor,
-        fecha,
-        estado,
-        tipo,
-        observaciones,
-        examenes_requeridos,
-        nota_evolucion,
-      });
-      if (!resultado[0]) {
-        return res.status(404).json({ error: "Citas no encontrado" });
-      }
-      res.json({ mensaje: "Citas actualizado correctamente" });
-    } catch (e) {
-      res
-        .status(500)
-        .json({ error: "Error en el servidor al actualizar el Citas" });
-    }
+async actualizarCitaUsuario(req, res) {
+  try {
+    const { id } = req.params;
+    const { fecha } = req.body;
+
+    const resultado = await citasService.actualizarLasCitas(id, { fecha });
+    if (!resultado[0]) return res.status(404).json({ error: "Cita no encontrada" });
+    res.json({ mensaje: "Cita reagendada correctamente" });
+  } catch (e) {
+    res.status(500).json({ error: "Error al reagendar la cita" });
   }
+}
+
+async actualizarCitaDoctor(req, res) {
+  try {
+    const { id } = req.params;
+    const { estado, observaciones, examenes_requeridos, nota_evolucion } = req.body;
+
+    const resultado = await citasService.actualizarLasCitas(id, {
+      estado,
+      observaciones,
+      examenes_requeridos,
+      nota_evolucion,
+    });
+    if (!resultado[0]) return res.status(404).json({ error: "Cita no encontrada" });
+    res.json({ mensaje: "Cita actualizada por doctor" });
+  } catch (e) {
+    res.status(500).json({ error: "Error al actualizar la cita" });
+  }
+}
+
   async crearOrdenDesdeCarrito(req, res) {
     try {
       const id_usuario = req.usuario.id;
