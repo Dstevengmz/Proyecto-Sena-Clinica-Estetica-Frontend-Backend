@@ -15,6 +15,18 @@ router.patch( "/editarcita-doctor/:id", authorization, verificarRol(["doctor", "
 router.patch( "/editarcitausuario/:id", authorization, verificarRol(["usuario"]), CitaController.actualizarCitaUsuario
 );
 
+router.patch( "/cancelarcita/:id", authorization, verificarRol(["usuario"]), CitaController.cancelarCita
+);
+
+
+router.get("/pacientesdoctor", authorization, verificarRol(["doctor"]), CitaController.listarPacientesPorDoctor
+);
+
+router.get("/citasusuario/:usuarioId", authorization, verificarRol(["doctor"]), CitaController.listarCitasPorUsuarioYDoctor
+);
+
+
+
 
 
 

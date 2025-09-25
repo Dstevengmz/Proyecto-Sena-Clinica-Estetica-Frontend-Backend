@@ -2,6 +2,38 @@ const citasService = require("../services/CitasServices");
 const PDFDocument = require("pdfkit");
 
 class CitasControllers {
+  
+async listarPacientesPorDoctor(req, res) {
+  try {
+    const doctorId = req.usuario.id;
+    const pacientes = await citasService.listarPacientesPorDoctor(doctorId);
+    res.json(pacientes);
+  } catch (error) {
+    console.error("Error en listarPacientesPorDoctor:", error);
+    res.status(500).json({ error: "Error al listar pacientes" });
+  }
+}
+
+async listarCitasPorUsuarioYDoctor(req, res) {
+  try {
+    const { usuarioId } = req.params;
+    const doctorId = req.usuario.id;
+    const citasPaciente = await citasService.listarCitasPorUsuarioYDoctor(
+      usuarioId,
+      doctorId
+    );
+    res.json(citasPaciente);
+  } catch (error) {
+    console.error("Error en listarCitasPorUsuarioYDoctor:", error);
+    res.status(500).json({ error: "Error al listar citas del paciente" });
+  }
+}
+
+
+
+
+
+  // Arriba se agrego nuevo
   async listarCitas(req, res) {
     try {
       const rol = req.usuario.rol;
@@ -30,6 +62,27 @@ class CitasControllers {
       });
     }
   }
+
+
+async cancelarCita(req, res) {
+  try {
+    const { id } = req.params;
+
+    const resultado = await citasService.actualizarLasCitas(id, {
+      estado: "cancelada",
+    });
+
+    if (!resultado[0]) {
+      return res.status(404).json({ error: "Cita no encontrada" });
+    }
+
+    res.json({ mensaje: "Cita cancelada correctamente" });
+  } catch (e) {
+    console.error("Error al cancelar cita:", e);
+    res.status(500).json({ error: "Error en el servidor al cancelar la cita" });
+  }
+}
+
 
   async buscarCitas(req, res) {
     try {
@@ -453,7 +506,7 @@ async actualizarCitaDoctor(req, res) {
 
   async marcarExamenesSubidos(req, res) {
     try {
-      const { id } = req.params; // id de la cita
+      const { id } = req.params; 
       if (req.usuario.rol !== "usuario") {
         return res.status(403).json({
           error: "Solo el paciente puede marcar sus exámenes como subidos",

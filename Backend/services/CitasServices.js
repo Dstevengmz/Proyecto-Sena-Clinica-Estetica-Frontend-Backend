@@ -15,6 +15,44 @@ const { Op } = require("sequelize");
 const redis = require("../config/redis");
 const moment = require("moment-timezone");
 class HistorialClinicoService {
+  async listarPacientesPorDoctor(doctorId) {
+    try {
+      return await citas.findAll({
+        where: { id_doctor: doctorId },
+        include: [
+          { model: usuarios, as: "usuario", attributes: ["id", "nombre", "correo","numerodocumento"] },
+          { model: usuarios, as: "doctor", attributes: ["id", "nombre"] },
+        ],
+        order: [["fecha", "DESC"]],
+      });
+    } catch (error) {
+      console.error("Error en listarPacientesPorDoctor:", error);
+      throw error;
+    }
+  }
+
+  async listarCitasPorUsuarioYDoctor(usuarioId, doctorId) {
+    try {
+      return await citas.findAll({
+        where: { id_usuario: usuarioId, id_doctor: doctorId },
+        include: [
+          { model: usuarios, as: "usuario", attributes: ["id", "nombre", "correo"] },
+          { model: usuarios, as: "doctor", attributes: ["id", "nombre"] },
+        ],
+        order: [["fecha", "ASC"]],
+      });
+    } catch (error) {
+      console.error("Error en listarCitasPorUsuarioYDoctor:", error);
+      throw error;
+    }
+  }
+
+
+// Arriba se agrego apenas
+
+
+
+
   async listarLasCitas(doctorId = null) {
     const whereCondition = doctorId ? { id_doctor: doctorId } : {};
 
@@ -347,33 +385,38 @@ class HistorialClinicoService {
     }
   }
 
-  async obtenerCitasPorFecha(fecha, doctorId = null) {
-    const inicioDelDia = new Date(`${fecha}T00:00:00`);
-    const finDelDia = new Date(`${fecha}T23:59:59`);
+ async obtenerCitasPorFecha(fecha, doctorId = null) {
+  const inicioDelDia = new Date(`${fecha}T00:00:00`);
+  const finDelDia = new Date(`${fecha}T23:59:59`);
 
-    if (isNaN(inicioDelDia.getTime()) || isNaN(finDelDia.getTime())) {
-      throw new Error("Fecha no Valida");
-    }
-
-    const where = {
-      fecha: {
-        [Op.between]: [inicioDelDia, finDelDia],
-      },
-    };
-    if (doctorId) {
-      where.id_doctor = doctorId;
-    }
-
-    return await citas.findAll({
-      where,
-      include: {
-        model: usuarios,
-        as: "usuario",
-        attributes: ["nombre"],
-      },
-      order: [["fecha", "ASC"]],
-    });
+  if (isNaN(inicioDelDia.getTime()) || isNaN(finDelDia.getTime())) {
+    throw new Error("Fecha no válida");
   }
+
+  const where = {
+    fecha: {
+      [Op.between]: [inicioDelDia, finDelDia],
+    },
+    estado: { [Op.ne]: "cancelada" },
+  };
+
+  if (doctorId) {
+    where.id_doctor = doctorId;
+  }
+
+  return await citas.findAll({
+    where,
+    include: {
+      model: usuarios,
+      as: "usuario",
+      attributes: ["nombre"],
+    },
+    order: [["fecha", "ASC"]],
+  });
+}
+
+
+
 
   async guardarYEmitirNotificacion(io, doctorId, notificacion) {
     const clave = `notificaciones:doctor:${doctorId}`;
