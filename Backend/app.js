@@ -8,6 +8,7 @@ const Examenes = require('./routers/ExamenRouters');
 const Carrito= require('./routers/CarritoRouters');
 const CategoriaProcedimientos=require('./routers/CategoriaProcedimientosRouters')
 const Consentimiento=require('./routers/ConsentimientoRouters');
+const Chat=require('./routers/ChatRouters');
 const express = require('express');
 const cors = require('cors');
 const socketIO = require("socket.io");
@@ -45,6 +46,7 @@ app.use('/apicarrito',Carrito);
 app.use('/apiexamenes', Examenes);
 app.use('/apicategoriaprocedimientos',CategoriaProcedimientos);
 app.use('/apiconsentimiento',Consentimiento);
+app.use('/apichat',Chat);
 
 server.listen(puerto, () => {
     console.log(`Servidor corriendo en http://localhost:${puerto}`);
