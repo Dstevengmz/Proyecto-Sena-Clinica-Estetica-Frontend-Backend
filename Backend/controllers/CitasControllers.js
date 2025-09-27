@@ -119,6 +119,10 @@ async cancelarCita(req, res) {
       payload._rol_creador = rol;
 
       const nuevocitas = await citasService.crearLasCitas(payload);
+
+      if (nuevocitas && nuevocitas.id_doctor) {
+        await citasService.notificarTotalCitas(nuevocitas.id_doctor);
+      }
       res.status(201).json(nuevocitas);
     } catch (error) {
       console.error("Error al crear Citas:", error);

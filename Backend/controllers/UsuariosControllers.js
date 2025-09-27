@@ -35,7 +35,6 @@ class UsuariosController {
     }
   }
 
-
   async crearUsuarios(req, res) {
     try {
       const payload = { ...req.body, rol: "usuario" };
@@ -59,8 +58,8 @@ class UsuariosController {
       }
       res.json(resultado);
     } catch (e) {
-      console.error('Error en preRegistro:', e);
-      res.status(500).json({ error: 'Error en el pre-registro' });
+      console.error("Error en preRegistro:", e);
+      res.status(500).json({ error: "Error en el pre-registro" });
     }
   }
 
@@ -74,8 +73,8 @@ class UsuariosController {
       }
       res.json(resultado);
     } catch (e) {
-      console.error('Error al confirmar registro:', e);
-      res.status(500).json({ error: 'Error al confirmar registro' });
+      console.error("Error al confirmar registro:", e);
+      res.status(500).json({ error: "Error al confirmar registro" });
     }
   }
 
@@ -265,11 +264,9 @@ class UsuariosController {
         "Error al marcar todas las notificaciones como leídas:",
         error
       );
-      res
-        .status(500)
-        .json({
-          error: "Error al marcar todas las notificaciones como leídas",
-        });
+      res.status(500).json({
+        error: "Error al marcar todas las notificaciones como leídas",
+      });
     }
   }
 
@@ -350,11 +347,9 @@ class UsuariosController {
         "Error al marcar todas las notificaciones de usuario como leídas:",
         error
       );
-      res
-        .status(500)
-        .json({
-          error: "Error al marcar todas las notificaciones como leídas",
-        });
+      res.status(500).json({
+        error: "Error al marcar todas las notificaciones como leídas",
+      });
     }
   }
 

@@ -15,7 +15,16 @@ const { Op } = require("sequelize");
 const redis = require("../config/redis");
 const moment = require("moment-timezone");
 class HistorialClinicoService {
+
+
+  async  notificarTotalCitas(doctorId) {
+  const total = await citas.count({ where: { id_doctor: doctorId } });
+  global.io.to(`doctor_${doctorId}`).emit("totalCitas", { total });
+}
+
+
   async listarPacientesPorDoctor(doctorId) {
+    
     try {
       return await citas.findAll({
         where: { id_doctor: doctorId },
