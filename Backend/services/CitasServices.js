@@ -8,6 +8,7 @@ const {
   historialclinico,
   procedimientos,
   examen,
+  notificaciones,
 } = require("../models");
 const { EnviarCorreo } = require("../assets/corre");
 const { ValidarLaCita } = require("../assets/Validarfecharegistro");
@@ -15,21 +16,161 @@ const { Op } = require("sequelize");
 const redis = require("../config/redis");
 const moment = require("moment-timezone");
 class HistorialClinicoService {
+  
+  async notificarTotalCitasRealizadasProcedimientoHoy(doctorId) {
+    try {
+      const inicioDelDia = moment.tz("America/Bogota").startOf("day").toDate();
+      const finDelDia = moment.tz("America/Bogota").endOf("day").toDate();
 
+      const where = {
+        estado: "realizada",
+        tipo: "procedimiento",
+        fecha: {
+          [Op.between]: [inicioDelDia, finDelDia],
+        },
+      };
 
-  async  notificarTotalCitas(doctorId) {
-  const total = await citas.count({ where: { id_doctor: doctorId } });
-  global.io.to(`doctor_${doctorId}`).emit("totalCitas", { total });
-}
+      if (doctorId) {
+        where.id_doctor = doctorId;
+      }
 
+      const total = await citas.count({ where });
+
+      if (doctorId) {
+        global.io
+          .to(`doctor_${doctorId}`)
+          .emit("totalCitasRealizadasProcedimientoHoy", { total });
+      }
+
+      return total;
+    } catch (error) {
+      console.error(
+        "Error al contar citas realizadas de tipo procedimiento hoy:",
+        error
+      );
+      return 0;
+    }
+  }
+
+  async notificarTotalCitasRealizadasEvaluacionHoy(doctorId) {
+    try {
+      const inicioDelDia = moment.tz("America/Bogota").startOf("day").toDate();
+      const finDelDia = moment.tz("America/Bogota").endOf("day").toDate();
+
+      const where = {
+        estado: "realizada",
+        tipo: "evaluacion",
+        fecha: {
+          [Op.between]: [inicioDelDia, finDelDia],
+        },
+      };
+
+      if (doctorId) {
+        where.id_doctor = doctorId;
+      }
+
+      const total = await citas.count({ where });
+
+      if (doctorId) {
+        global.io
+          .to(`doctor_${doctorId}`)
+          .emit("totalCitasRealizadasEvaluacionHoy", { total });
+      }
+
+      return total;
+    } catch (error) {
+      console.error(
+        "Error al contar citas realizadas de tipo evaluación hoy:",
+        error
+      );
+      return 0;
+    }
+  }
+
+  async notificarTotalCitasCanceladasHoy(doctorId) {
+    try {
+      const inicioDelDia = moment.tz("America/Bogota").startOf("day").toDate();
+      const finDelDia = moment.tz("America/Bogota").endOf("day").toDate();
+
+      const where = {
+        estado: "cancelada",
+        fecha: {
+          [Op.between]: [inicioDelDia, finDelDia],
+        },
+      };
+
+      if (doctorId) {
+        where.id_doctor = doctorId;
+      }
+
+      const total = await citas.count({ where });
+
+      if (doctorId) {
+        global.io
+          .to(`doctor_${doctorId}`)
+          .emit("totalCitasCanceladasHoy", { total });
+      }
+
+      return total;
+    } catch (error) {
+      console.error("Error al contar citas canceladas de hoy:", error);
+      return 0;
+    }
+  }
+
+  async notificarTotalCitasPendientesHoy(doctorId) {
+    try {
+      const inicioDelDia = moment.tz("America/Bogota").startOf("day").toDate();
+      const finDelDia = moment.tz("America/Bogota").endOf("day").toDate();
+
+      const where = {
+        estado: "pendiente",
+        fecha: {
+          [Op.between]: [inicioDelDia, finDelDia],
+        },
+      };
+
+      if (doctorId) {
+        where.id_doctor = doctorId;
+      }
+
+      const total = await citas.count({ where });
+
+      if (doctorId) {
+        global.io
+          .to(`doctor_${doctorId}`)
+          .emit("totalCitasPendientesHoy", { total });
+      }
+
+      return total;
+    } catch (error) {
+      console.error("Error al contar citas pendientes de hoy:", error);
+      return 0;
+    }
+  }
+
+  async notificarTotalCitas(doctorId) {
+    const total = await citas.count({ where: { id_doctor: doctorId } });
+    global.io.to(`doctor_${doctorId}`).emit("totalCitas", { total });
+  }
+
+  async notificarTotalCitasCanceladas(doctorId) {
+    const total = await citas.count({
+      where: { id_doctor: doctorId, estado: "cancelada" },
+    });
+    global.io.to(`doctor_${doctorId}`).emit("totalCitasCanceladas", { total });
+  }
 
   async listarPacientesPorDoctor(doctorId) {
-    
     try {
       return await citas.findAll({
         where: { id_doctor: doctorId },
         include: [
-          { model: usuarios, as: "usuario", attributes: ["id", "nombre", "correo","numerodocumento"] },
+          {
+            model: usuarios,
+            as: "usuario",
+            attributes: ["id", "nombre", "correo", "numerodocumento"],
+          },
           { model: usuarios, as: "doctor", attributes: ["id", "nombre"] },
         ],
         order: [["fecha", "DESC"]],
@@ -45,7 +186,11 @@ class HistorialClinicoService {
       return await citas.findAll({
         where: { id_usuario: usuarioId, id_doctor: doctorId },
         include: [
-          { model: usuarios, as: "usuario", attributes: ["id", "nombre", "correo"] },
+          {
+            model: usuarios,
+            as: "usuario",
+            attributes: ["id", "nombre", "correo"],
+          },
           { model: usuarios, as: "doctor", attributes: ["id", "nombre"] },
         ],
         order: [["fecha", "ASC"]],
@@ -55,12 +200,6 @@ class HistorialClinicoService {
       throw error;
     }
   }
-
-
-// Arriba se agrego apenas
-
-
-
 
   async listarLasCitas(doctorId = null) {
     const whereCondition = doctorId ? { id_doctor: doctorId } : {};
@@ -101,7 +240,7 @@ class HistorialClinicoService {
         },
         {
           model: examen,
-          as: 'examenes',
+          as: "examenes",
         },
       ],
       order: [["id", "ASC"]],
@@ -141,9 +280,6 @@ class HistorialClinicoService {
     }
   }
 
-
-
-  
   async buscarLasCitas(id) {
     return await citas.findByPk(id, {
       include: [
@@ -175,7 +311,7 @@ class HistorialClinicoService {
         },
         {
           model: examen,
-          as: 'examenes',
+          as: "examenes",
         },
         {
           model: usuarios,
@@ -187,10 +323,8 @@ class HistorialClinicoService {
   }
 
   async crearLasCitas(data) {
-    // Normalizar fecha a zona horaria America/Bogota para evitar desfaces (ej. 03:00 AM)
     if (data?.fecha) {
       const m = moment.tz(data.fecha, "America/Bogota");
-      // Si viene en 'YYYY-MM-DDTHH:mm:ss' o 'YYYY-MM-DD HH:mm:ss', moment lo parsea; asegurar objeto Date
       data.fecha = m.toDate();
     }
     ValidarLaCita(data);
@@ -203,12 +337,10 @@ class HistorialClinicoService {
       where: { id_usuario: data.id_usuario },
     });
 
-    const rolCreador = data._rol_creador; // inyectado desde el controlador
-    const esRolUsuario = rolCreador === 'usuario';
-    const esProcedimiento = data.tipo === 'procedimiento';
+    const rolCreador = data._rol_creador;
+    const esRolUsuario = rolCreador === "usuario";
+    const esProcedimiento = data.tipo === "procedimiento";
 
-    // Regla de negocio original para usuarios finales: debe haber servicio en carrito (primera evaluación o generación de nueva orden)
-    // Ajuste: si asistente/doctor crea un procedimiento sobre una orden existente NO exigir carrito.
     if (carrit.length === 0) {
       if (esRolUsuario) {
         const err = new Error(
@@ -217,7 +349,6 @@ class HistorialClinicoService {
         err.status = 400;
         throw err;
       }
-      // Asistente/doctor sin carrito: permitido sólo si es procedimiento y trae id_orden
       if (!esProcedimiento) {
         const err = new Error(
           "Para crear esta cita se requiere un procedimiento en el carrito o seleccionar el tipo adecuado."
@@ -227,10 +358,8 @@ class HistorialClinicoService {
       }
     }
 
-  if (!tieneCitasPrevias) {
-      // Primera cita
+    if (!tieneCitasPrevias) {
       if (esRolUsuario) {
-        // Usuario: se crea evaluación y orden desde carrito obligatorio
         data.tipo = "evaluacion";
         const nuevaOrden = await this.crearOrdenDesdeCarrito(data.id_usuario);
         if (!nuevaOrden || !nuevaOrden.id) {
@@ -242,15 +371,13 @@ class HistorialClinicoService {
         }
         data.id_orden = nuevaOrden.id;
       } else {
-        // Asistente/doctor: si quiere crear directamente un procedimiento inicial necesita id_orden válida (ya evaluada) -> validación más abajo lo confirmará
-        // Si no trae id_orden, podemos permitir evaluación sin carrito? Mejor exigir que especifique tipo eval o procedimiento coherente.
         if (!esProcedimiento) {
-          // Crear evaluación manual sin carrito no tiene sentido, abortamos para claridad.
-          const err = new Error("Debe existir un servicio en carrito para crear la primera evaluación del paciente.");
+          const err = new Error(
+            "Debe existir un servicio en carrito para crear la primera evaluación del paciente."
+          );
           err.status = 400;
           throw err;
         }
-        // Permitimos continuar: validación de evaluación realizada ligada a orden se hará luego.
       }
     } else {
       if (carrit.length > 0) {
@@ -264,7 +391,6 @@ class HistorialClinicoService {
         }
         data.id_orden = nuevaOrden.id;
       } else {
-        // Sin carrito: validar reglas para procedimiento basado en evaluación realizada
         if (data.tipo === "procedimiento") {
           if (!data.id_orden) {
             const err = new Error(
@@ -273,7 +399,6 @@ class HistorialClinicoService {
             err.status = 400;
             throw err;
           }
-          // Verificar que exista una cita de evaluación realizada ligada a esa orden y a ese usuario
           const evaluacionRealizada = await citas.findOne({
             where: {
               id_usuario: data.id_usuario,
@@ -290,8 +415,10 @@ class HistorialClinicoService {
             err.status = 400;
             throw err;
           }
-          // Propagar exámenes requeridos desde la última evaluación realizada si no se envió explícito
-          if (evaluacionRealizada.examenes_requeridos && !data.examenes_requeridos) {
+          if (
+            evaluacionRealizada.examenes_requeridos &&
+            !data.examenes_requeridos
+          ) {
             data.examenes_requeridos = evaluacionRealizada.examenes_requeridos;
           }
         }
@@ -300,7 +427,6 @@ class HistorialClinicoService {
     const creacita = await citas.create(data);
     let usuario, doctor;
     try {
-      // Obtener instancias sin sobrescribir el modelo 'usuarios'
       usuario = await usuarios.findByPk(data.id_usuario);
       doctor = await usuarios.findByPk(data.id_doctor);
       if (!usuario) {
@@ -344,7 +470,9 @@ class HistorialClinicoService {
     }
     try {
       await this.guardarYEmitirNotificacion(global.io, data.id_doctor, {
-        mensaje: `📅 Nueva cita con ${usuario?.nombre || "Paciente"} para el ${data.fecha}`,
+        mensaje: `📅 Nueva cita con ${usuario?.nombre || "Paciente"} para el ${
+          data.fecha
+        }`,
         fecha: new Date().toISOString(),
         tipo: "cita",
         citaId: creacita.id,
@@ -394,57 +522,111 @@ class HistorialClinicoService {
     }
   }
 
- async obtenerCitasPorFecha(fecha, doctorId = null) {
-  const inicioDelDia = new Date(`${fecha}T00:00:00`);
-  const finDelDia = new Date(`${fecha}T23:59:59`);
+  async obtenerCitasPorFecha(fecha, doctorId = null) {
+    const inicioDelDia = new Date(`${fecha}T00:00:00`);
+    const finDelDia = new Date(`${fecha}T23:59:59`);
 
-  if (isNaN(inicioDelDia.getTime()) || isNaN(finDelDia.getTime())) {
-    throw new Error("Fecha no válida");
+    if (isNaN(inicioDelDia.getTime()) || isNaN(finDelDia.getTime())) {
+      throw new Error("Fecha no válida");
+    }
+
+    const where = {
+      fecha: {
+        [Op.between]: [inicioDelDia, finDelDia],
+      },
+      estado: { [Op.ne]: "cancelada" },
+    };
+
+    if (doctorId) {
+      where.id_doctor = doctorId;
+    }
+
+    return await citas.findAll({
+      where,
+      include: {
+        model: usuarios,
+        as: "usuario",
+        attributes: ["nombre"],
+      },
+      order: [["fecha", "ASC"]],
+    });
   }
-
-  const where = {
-    fecha: {
-      [Op.between]: [inicioDelDia, finDelDia],
-    },
-    estado: { [Op.ne]: "cancelada" },
-  };
-
-  if (doctorId) {
-    where.id_doctor = doctorId;
-  }
-
-  return await citas.findAll({
-    where,
-    include: {
-      model: usuarios,
-      as: "usuario",
-      attributes: ["nombre"],
-    },
-    order: [["fecha", "ASC"]],
-  });
-}
-
-
-
 
   async guardarYEmitirNotificacion(io, doctorId, notificacion) {
     const clave = `notificaciones:doctor:${doctorId}`;
-    // Guardar en Redis
-    await redis.lPush(clave, JSON.stringify(notificacion));
+
+    // 1. Guardar en BD y obtener la notificación creada
+    const nuevaNotif = await notificaciones.create({
+      id_usuario: doctorId,
+      id_cita: notificacion.citaId || null,
+      tipo: notificacion.tipo,
+      mensaje: notificacion.mensaje,
+      fecha: notificacion.fecha,
+      leida: false,
+      archivada: false,
+    });
+
+    // 2. Guardar en Redis con ID de BD
+    await redis.lPush(
+      clave,
+      JSON.stringify({
+        ...notificacion,
+        id: nuevaNotif.id, // 👈 id real de la BD
+        leida: false,
+        archivada: false,
+      })
+    );
     await redis.lTrim(clave, 0, 20);
-    // Emitir en tiempo real
-    io.to(`doctor_${doctorId}`).emit("nuevaNotificacion", notificacion);
-    console.log(`Emitido a doctor_${doctorId}:`, notificacion);
+
+    // 3. Emitir en tiempo real con id también
+    io.to(`doctor_${doctorId}`).emit("nuevaNotificacion", {
+      ...notificacion,
+      id: nuevaNotif.id,
+      leida: false,
+      archivada: false,
+    });
+
+    console.log(`Emitido a doctor_${doctorId}:`, {
+      ...notificacion,
+      id: nuevaNotif.id,
+    });
   }
 
   async guardarYEmitirNotificacionUsuario(io, usuarioId, notificacion) {
     const clave = `notificaciones:usuario:${usuarioId}`;
-    // Guardar en Redis
-    await redis.lPush(clave, JSON.stringify(notificacion));
+
+    const nuevaNotif = await notificaciones.create({
+      id_usuario: usuarioId,
+      id_cita: notificacion.citaId || null,
+      tipo: notificacion.tipo,
+      mensaje: notificacion.mensaje,
+      fecha: notificacion.fecha,
+      leida: false,
+      archivada: false,
+    });
+
+    await redis.lPush(
+      clave,
+      JSON.stringify({
+        ...notificacion,
+        id: nuevaNotif.id,
+        leida: false,
+        archivada: false,
+      })
+    );
     await redis.lTrim(clave, 0, 20);
-    // Emitir en tiempo real
-    io.to(`paciente_${usuarioId}`).emit("nuevaNotificacion", notificacion);
-    console.log(`Emitido a paciente_${usuarioId}:`, notificacion);
+
+    io.to(`paciente_${usuarioId}`).emit("nuevaNotificacion", {
+      ...notificacion,
+      id: nuevaNotif.id,
+      leida: false,
+      archivada: false,
+    });
+
+    console.log(`Emitido a paciente_${usuarioId}:`, {
+      ...notificacion,
+      id: nuevaNotif.id,
+    });
   }
 
   async obtenerCitasPorDia(doctorId, fecha) {
@@ -461,20 +643,20 @@ class HistorialClinicoService {
         .tz(`${fecha}T23:59:59`, "America/Bogota")
         .toDate();
       // Verificar en consola
-      console.log("Start Date:", FechaInicio); 
+      console.log("Start Date:", FechaInicio);
       // Verificar en consola
-      console.log("End Date:", FechaFin); 
+      console.log("End Date:", FechaFin);
 
       // Realizamos la consulta con las fechas ajustadas y solo las citas del doctor
       return await citas.findAll({
         where: {
           // Filtramos por el ID del doctor
-          id_doctor: doctorId, 
+          id_doctor: doctorId,
           fecha: {
             // Mayor o igual al inicio del día
-            [Op.gte]: FechaInicio, 
+            [Op.gte]: FechaInicio,
             // Menor o igual al final del día
-            [Op.lte]: FechaFin, 
+            [Op.lte]: FechaFin,
           },
         },
       });
@@ -483,6 +665,7 @@ class HistorialClinicoService {
       throw new Error("Error al obtener citas por día");
     }
   }
+
   async obtenerCitasPorRango(doctorId, desde, hasta) {
     try {
       // Validar si las fechas son válidas
@@ -501,18 +684,18 @@ class HistorialClinicoService {
         .tz(`${hasta}T23:59:59`, "America/Bogota")
         .toDate();
       // Verificar la fecha de inicio
-      console.log("Start Date:", RangoInicio); 
+      console.log("Start Date:", RangoInicio);
       // Verificar la fecha de fin
-      console.log("End Date:", RangoFin); 
+      console.log("End Date:", RangoFin);
 
       // Realizar la consulta filtrada por doctor y el rango de fechas
       return await citas.findAll({
         where: {
           // Filtrar por el ID del doctor
-          id_doctor: doctorId, 
+          id_doctor: doctorId,
           fecha: {
             // Filtrar por el rango de fechas
-            [Op.between]: [RangoInicio, RangoFin], 
+            [Op.between]: [RangoInicio, RangoFin],
           },
         },
       });
@@ -521,6 +704,7 @@ class HistorialClinicoService {
       throw new Error("Error al obtener citas por rango de fechas");
     }
   }
+
   async obtenerCitasPorTipo(doctorId, tipo, fecha) {
     try {
       // Usamos moment para verificar si la fecha es válida
@@ -547,6 +731,7 @@ class HistorialClinicoService {
       throw new Error("Error al obtener citas por tipo");
     }
   }
+
   async obtenerMisCitas(usuarioId) {
     return await citas.findAll({
       where: { id_usuario: usuarioId },
@@ -583,57 +768,72 @@ class HistorialClinicoService {
         },
         {
           model: examen,
-          as: 'examenes',
+          as: "examenes",
         },
       ],
       order: [["fecha", "ASC"]],
     });
   }
 
-    async cambiarEstadoCita({ id, estado, doctorId }) {
-      try {
-        const cita = await citas.findByPk(id);
-        if (!cita) return null;
+  async cambiarEstadoCita({ id, estado, doctorId }) {
+    try {
+      const cita = await citas.findByPk(id);
+      if (!cita) return null;
 
-        if (parseInt(cita.id_doctor) !== parseInt(doctorId)) {
-          const err = new Error("No autorizado para cambiar esta cita");
-          err.status = 403;
-          throw err;
-        }
-
-        const estadosPermitidos = ["pendiente", "confirmada", "realizada", "cancelada"];
-        if (!estadosPermitidos.includes(estado)) {
-          const err = new Error("Estado inválido");
-          err.status = 400;
-          throw err;
-        }
-
-        cita.estado = estado;
-        await cita.save();
-        console.log("Estado de cita actualizado:", { id: cita.id, estado: cita.estado });
-        return cita;
-      } catch (error) {
-        console.error("Error al cambiar estado de la cita:", error);
-        throw error;
+      if (parseInt(cita.id_doctor) !== parseInt(doctorId)) {
+        const err = new Error("No autorizado para cambiar esta cita");
+        err.status = 403;
+        throw err;
       }
+
+      const estadosPermitidos = [
+        "pendiente",
+        "confirmada",
+        "realizada",
+        "cancelada",
+      ];
+      if (!estadosPermitidos.includes(estado)) {
+        const err = new Error("Estado inválido");
+        err.status = 400;
+        throw err;
+      }
+
+      cita.estado = estado;
+      await cita.save();
+      console.log("Estado de cita actualizado:", {
+        id: cita.id,
+        estado: cita.estado,
+      });
+      return cita;
+    } catch (error) {
+      console.error("Error al cambiar estado de la cita:", error);
+      throw error;
     }
-  
+  }
 
   async marcarExamenesSubidos({ id_cita, id_usuario_que_confirma }) {
     const cita = await citas.findByPk(id_cita, {
       include: [
-        { model: usuarios, as: 'usuario', attributes: ['id','nombre','correo'] },
-        { model: usuarios, as: 'doctor', attributes: ['id','nombre','correo'] },
+        {
+          model: usuarios,
+          as: "usuario",
+          attributes: ["id", "nombre", "correo"],
+        },
+        {
+          model: usuarios,
+          as: "doctor",
+          attributes: ["id", "nombre", "correo"],
+        },
       ],
     });
-    if (!cita) throw new Error('Cita no encontrada');
+    if (!cita) throw new Error("Cita no encontrada");
     if (parseInt(cita.id_usuario) !== parseInt(id_usuario_que_confirma)) {
-      const err = new Error('No autorizado para marcar esta cita');
+      const err = new Error("No autorizado para marcar esta cita");
       err.status = 403;
       throw err;
     }
     if (cita.examenes_cargados) {
-      return cita; 
+      return cita;
     }
     cita.examenes_cargados = true;
     await cita.save();
@@ -641,18 +841,20 @@ class HistorialClinicoService {
     try {
       if (cita.doctor?.correo) {
         await EnviarCorreo({
-            receipients: cita.doctor.correo,
-            subject: 'Paciente ha subido exámenes',
-            message: `
+          receipients: cita.doctor.correo,
+          subject: "Paciente ha subido exámenes",
+          message: `
               <h2>Hola ${cita.doctor.nombre},</h2>
-              <p>El paciente<br><strong>${cita.usuario?.nombre || 'Paciente'}</strong><br>ha completado la carga de exámenes</p><br>
+              <p>El paciente<br><strong>${
+                cita.usuario?.nombre || "Paciente"
+              }</strong><br>ha completado la carga de exámenes</p><br>
               <p>Puedes revisarlos ingresando al panel clínico.</p> <br>
               <p>Fecha cita: <strong>${cita.fecha}</strong></p>
             `,
         });
       }
     } catch (e) {
-      console.error('Error enviando correo de exámenes cargados:', e);
+      console.error("Error enviando correo de exámenes cargados:", e);
     }
 
     try {
@@ -660,18 +862,17 @@ class HistorialClinicoService {
         await this.guardarYEmitirNotificacion(global.io, cita.id_doctor, {
           mensaje: `📄 El paciente \n ${cita.usuario?.nombre} subió sus exámenes`,
           fecha: new Date().toISOString(),
-          tipo: 'examenes',
+          tipo: "examenes",
           citaId: cita.id,
           paciente: cita.usuario?.nombre,
           leida: false,
-          ruta: `/citas/${cita.id}`, 
+          ruta: `/citas/${cita.id}`,
         });
       }
     } catch (e) {
-      console.error('Error emitiendo notificación de exámenes:', e);
+      console.error("Error emitiendo notificación de exámenes:", e);
     }
     return cita;
   }
-  
 }
 module.exports = new HistorialClinicoService();

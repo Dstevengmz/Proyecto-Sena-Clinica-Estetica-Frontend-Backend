@@ -1,4 +1,4 @@
-const { usuarios } = require("../models");
+const { usuarios, notificaciones } = require("../models");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { EnviarCorreo } = require("../assets/corre");
@@ -163,6 +163,7 @@ class UsuariosService {
       return { error: "Error al procesar la solicitud de inicio de sesión" };
     }
   }
+
   async activarUsuario(id, estado) {
     try {
       const usuario = await usuarios.findByPk(id);
@@ -255,37 +256,37 @@ class UsuariosService {
     }
   }
 
-  async marcarNotificacionComoLeida(doctorId, notificacionIndex) {
+  async marcarNotificacionComoLeida(doctorId, notificacionId) {
     try {
+      const notif = await notificaciones.findOne({
+        where: { id: notificacionId, id_usuario: doctorId },
+      });
+      if (!notif) return { error: "Notificación no encontrada" };
+
+      notif.leida = true;
+      await notif.save();
+
       const clave = `notificaciones:doctor:${doctorId}`;
-      const notificaciones = await redis.lRange(clave, 0, -1);
+      const lista = await redis.lRange(clave, 0, -1);
 
-      if (notificacionIndex >= 0 && notificacionIndex < notificaciones.length) {
-        // Obtener todas las notificaciones, modificar la específica, y reemplazar la lista completa
-        const notificacionesArray = notificaciones.map((notif) =>
-          JSON.parse(notif)
-        );
-        notificacionesArray[notificacionIndex].leida = true;
+      const nuevaLista = lista.map((item) => {
+        const n = JSON.parse(item);
 
-        // Reemplazar toda la lista en Redis
-        await redis.del(clave);
-        if (notificacionesArray.length > 0) {
-          // Insertar en orden reverso para mantener el orden original
-          const notificacionesString = notificacionesArray.map((notif) =>
-            JSON.stringify(notif)
-          );
-          for (let i = notificacionesString.length - 1; i >= 0; i--) {
-            await redis.lPush(clave, notificacionesString[i]);
-          }
+        if (String(n.id) === String(notificacionId)) {
+          n.leida = true;
         }
 
-        console.log(
-          `Notificación ${notificacionIndex} marcada como leída para doctor ${doctorId}`
-        );
-        return { success: true };
+        return JSON.stringify(n);
+      });
+
+      await redis.del(clave);
+      if (nuevaLista.length > 0) {
+        for (let i = nuevaLista.length - 1; i >= 0; i--) {
+          await redis.lPush(clave, nuevaLista[i]);
+        }
       }
 
-      return { error: "Índice de notificación no válido" };
+      return { success: true };
     } catch (error) {
       console.error("Error al marcar notificación como leída:", error);
       return { error: "Error al marcar notificación como leída" };
@@ -294,31 +295,28 @@ class UsuariosService {
 
   async marcarTodasNotificacionesComoLeidas(doctorId) {
     try {
+      // Actualizar en BD
+      await notificaciones.update(
+        { leida: true },
+        { where: { id_usuario: doctorId } }
+      );
+
       const clave = `notificaciones:doctor:${doctorId}`;
-      const notificaciones = await redis.lRange(clave, 0, -1);
+      const lista = await redis.lRange(clave, 0, -1);
 
-      // Marcar todas como leídas manteniendo el orden
-      const notificacionesActualizadas = notificaciones.map((notif) => {
-        const notificacion = JSON.parse(notif);
-        notificacion.leida = true;
-        return notificacion;
-      });
+      if (lista.length > 0) {
+        const nuevaLista = lista.map((item) => {
+          const n = JSON.parse(item);
+          n.leida = true; // 👈 todas en true
+          return JSON.stringify(n);
+        });
 
-      // Reemplazar toda la lista
-      await redis.del(clave);
-      if (notificacionesActualizadas.length > 0) {
-        // Insertar en orden reverso para mantener el orden original
-        const notificacionesString = notificacionesActualizadas.map((notif) =>
-          JSON.stringify(notif)
-        );
-        for (let i = notificacionesString.length - 1; i >= 0; i--) {
-          await redis.lPush(clave, notificacionesString[i]);
+        await redis.del(clave);
+        for (let i = nuevaLista.length - 1; i >= 0; i--) {
+          await redis.lPush(clave, nuevaLista[i]);
         }
       }
 
-      console.log(
-        `Todas las notificaciones marcadas como leídas para doctor ${doctorId}`
-      );
       return { success: true };
     } catch (error) {
       console.error(
@@ -331,54 +329,12 @@ class UsuariosService {
 
   async archivarNotificacionesLeidas(doctorId) {
     try {
-      const clave = `notificaciones:doctor:${doctorId}`;
-      const claveArchivo = `notificaciones_archivo:doctor:${doctorId}`;
-      const notificaciones = await redis.lRange(clave, 0, -1);
-
-      const notificacionesActivas = [];
-      const notificacionesArchivadas = [];
-
-      notificaciones.forEach((notif) => {
-        const notificacion = JSON.parse(notif);
-        if (notificacion.leida) {
-          // Agregar timestamp de archivado
-          notificacion.fechaArchivado = new Date().toISOString();
-          notificacionesArchivadas.push(notificacion);
-        } else {
-          notificacionesActivas.push(notificacion);
-        }
-      });
-
-      // Actualizar notificaciones activas
-      await redis.del(clave);
-      if (notificacionesActivas.length > 0) {
-        const notificacionesString = notificacionesActivas.map((notif) =>
-          JSON.stringify(notif)
-        );
-        for (let i = notificacionesString.length - 1; i >= 0; i--) {
-          await redis.lPush(clave, notificacionesString[i]);
-        }
-      }
-
-      // Agregar a archivo (mantener hasta 50 notificaciones archivadas)
-      if (notificacionesArchivadas.length > 0) {
-        const archivadosString = notificacionesArchivadas.map((notif) =>
-          JSON.stringify(notif)
-        );
-        for (let i = archivadosString.length - 1; i >= 0; i--) {
-          await redis.lPush(claveArchivo, archivadosString[i]);
-        }
-        await redis.lTrim(claveArchivo, 0, 49); // Mantener solo 50
-      }
-
-      console.log(
-        `${notificacionesArchivadas.length} notificaciones archivadas para doctor ${doctorId}`
+      const [actualizadas] = await notificaciones.update(
+        { archivada: true },
+        { where: { id_usuario: doctorId, leida: true } }
       );
-      return {
-        success: true,
-        archivadas: notificacionesArchivadas.length,
-        activas: notificacionesActivas.length,
-      };
+      await redis.del(`notificaciones:doctor:${doctorId}`);
+      return { success: true, archivadas: actualizadas };
     } catch (error) {
       console.error("Error al archivar notificaciones:", error);
       return { error: "Error al archivar notificaciones" };
@@ -387,69 +343,54 @@ class UsuariosService {
 
   async obtenerHistorialNotificaciones(doctorId) {
     try {
-      const claveActivas = `notificaciones:doctor:${doctorId}`;
-      const claveArchivo = `notificaciones_archivo:doctor:${doctorId}`;
-
-      const notificacionesActivas = await redis.lRange(claveActivas, 0, -1);
-      const notificacionesArchivadas = await redis.lRange(claveArchivo, 0, -1);
-
-      const activas = notificacionesActivas.map((notif) => {
-        const notificacion = JSON.parse(notif);
-        notificacion.estado = "activa";
-        return notificacion;
+      // Traer desde BD
+      const lista = await notificaciones.findAll({
+        where: { id_usuario: doctorId },
+        order: [["fecha", "DESC"]],
       });
 
-      const archivadas = notificacionesArchivadas.map((notif) => {
-        const notificacion = JSON.parse(notif);
-        notificacion.estado = "archivada";
-        return notificacion;
-      });
+      // Opcional: limpiar Redis para que no crezca indefinidamente
+      // await redis.del(`notificaciones:doctor:${doctorId}`);
+      // await redis.del(`notificaciones_archivo:doctor:${doctorId}`);
 
-      // Combinar y ordenar por fecha
-      const todasLasNotificaciones = [...activas, ...archivadas];
-      todasLasNotificaciones.sort(
-        (a, b) => new Date(b.fecha) - new Date(a.fecha)
-      );
-
-      return todasLasNotificaciones;
+      return lista;
     } catch (error) {
       console.error("Error al obtener historial de notificaciones:", error);
       return [];
     }
   }
 
-  // Métodos para manejar notificaciones de usuarios
-  async marcarNotificacionUsuarioComoLeida(usuarioId, notificacionIndex) {
+  async marcarNotificacionUsuarioComoLeida(usuarioId, notificacionId) {
     try {
+      const notif = await notificaciones.findOne({
+        where: { id: notificacionId, id_usuario: usuarioId },
+      });
+      if (!notif) return { error: "Notificación no encontrada" };
+
+      notif.leida = true;
+      await notif.save();
+
       const clave = `notificaciones:usuario:${usuarioId}`;
-      const notificaciones = await redis.lRange(clave, 0, -1);
+      const lista = await redis.lRange(clave, 0, -1);
 
-      if (notificacionIndex >= 0 && notificacionIndex < notificaciones.length) {
-        // Obtener todas las notificaciones, modificar la específica, y reemplazar la lista completa
-        const notificacionesArray = notificaciones.map((notif) =>
-          JSON.parse(notif)
-        );
-        notificacionesArray[notificacionIndex].leida = true;
+      const nuevaLista = lista.map((item) => {
+        const n = JSON.parse(item);
 
-        // Reemplazar toda la lista en Redis
-        await redis.del(clave);
-        if (notificacionesArray.length > 0) {
-          // Insertar en orden reverso para mantener el orden original
-          const notificacionesString = notificacionesArray.map((notif) =>
-            JSON.stringify(notif)
-          );
-          for (let i = notificacionesString.length - 1; i >= 0; i--) {
-            await redis.lPush(clave, notificacionesString[i]);
-          }
+        if (String(n.id) === String(notificacionId)) {
+          n.leida = true;
         }
 
-        console.log(
-          `Notificación ${notificacionIndex} marcada como leída para usuario ${usuarioId}`
-        );
-        return { success: true };
+        return JSON.stringify(n);
+      });
+
+      await redis.del(clave);
+      if (nuevaLista.length > 0) {
+        for (let i = nuevaLista.length - 1; i >= 0; i--) {
+          await redis.lPush(clave, nuevaLista[i]);
+        }
       }
 
-      return { error: "Índice de notificación no válido" };
+      return { success: true };
     } catch (error) {
       console.error(
         "Error al marcar notificación de usuario como leída:",
@@ -459,126 +400,63 @@ class UsuariosService {
     }
   }
 
+  async archivarNotificacionesLeidasUsuario(usuarioId) {
+    try {
+      const [actualizadas] = await notificaciones.update(
+        { archivada: true },
+        { where: { id_usuario: usuarioId, leida: true } }
+      );
+      await redis.del(`notificaciones:usuario:${usuarioId}`);
+      return { success: true, archivadas: actualizadas };
+    } catch (error) {
+      console.error("Error al archivar notificaciones usuario:", error);
+      return { error: "Error al archivar notificaciones usuario" };
+    }
+  }
+
   async marcarTodasNotificacionesUsuarioComoLeidas(usuarioId) {
     try {
+      await notificaciones.update(
+        { leida: true },
+        { where: { id_usuario: usuarioId } }
+      );
+
       const clave = `notificaciones:usuario:${usuarioId}`;
-      const notificaciones = await redis.lRange(clave, 0, -1);
+      const lista = await redis.lRange(clave, 0, -1);
 
-      // Marcar todas como leídas manteniendo el orden
-      const notificacionesActualizadas = notificaciones.map((notif) => {
-        const notificacion = JSON.parse(notif);
-        notificacion.leida = true;
-        return notificacion;
-      });
+      if (lista.length > 0) {
+        const nuevaLista = lista.map((item) => {
+          const n = JSON.parse(item);
+          n.leida = true;
+          return JSON.stringify(n);
+        });
 
-      // Reemplazar toda la lista
-      await redis.del(clave);
-      if (notificacionesActualizadas.length > 0) {
-        // Insertar en orden reverso para mantener el orden original
-        const notificacionesString = notificacionesActualizadas.map((notif) =>
-          JSON.stringify(notif)
-        );
-        for (let i = notificacionesString.length - 1; i >= 0; i--) {
-          await redis.lPush(clave, notificacionesString[i]);
+        await redis.del(clave);
+        for (let i = nuevaLista.length - 1; i >= 0; i--) {
+          await redis.lPush(clave, nuevaLista[i]);
         }
       }
 
-      console.log(
-        `Todas las notificaciones marcadas como leídas para usuario ${usuarioId}`
-      );
       return { success: true };
     } catch (error) {
       console.error(
-        "Error al marcar todas las notificaciones de usuario como leídas:",
+        "Error al marcar todas las notificaciones como leídas (usuario):",
         error
       );
       return { error: "Error al marcar todas las notificaciones como leídas" };
     }
   }
 
-  async archivarNotificacionesLeidasUsuario(usuarioId) {
-    try {
-      const clave = `notificaciones:usuario:${usuarioId}`;
-      const claveArchivo = `notificaciones_archivo:usuario:${usuarioId}`;
-      const notificaciones = await redis.lRange(clave, 0, -1);
-
-      const notificacionesActivas = [];
-      const notificacionesArchivadas = [];
-
-      notificaciones.forEach((notif) => {
-        const notificacion = JSON.parse(notif);
-        if (notificacion.leida) {
-          // Agregar timestamp de archivado
-          notificacion.fechaArchivado = new Date().toISOString();
-          notificacionesArchivadas.push(notificacion);
-        } else {
-          notificacionesActivas.push(notificacion);
-        }
-      });
-
-      // Actualizar notificaciones activas
-      await redis.del(clave);
-      if (notificacionesActivas.length > 0) {
-        const notificacionesString = notificacionesActivas.map((notif) =>
-          JSON.stringify(notif)
-        );
-        for (let i = notificacionesString.length - 1; i >= 0; i--) {
-          await redis.lPush(clave, notificacionesString[i]);
-        }
-      }
-
-      // Agregar a archivo (mantener hasta 50 notificaciones archivadas)
-      if (notificacionesArchivadas.length > 0) {
-        const archivadosString = notificacionesArchivadas.map((notif) =>
-          JSON.stringify(notif)
-        );
-        for (let i = archivadosString.length - 1; i >= 0; i--) {
-          await redis.lPush(claveArchivo, archivadosString[i]);
-        }
-        await redis.lTrim(claveArchivo, 0, 49); // Mantener solo 50
-      }
-
-      console.log(
-        `${notificacionesArchivadas.length} notificaciones archivadas para usuario ${usuarioId}`
-      );
-      return {
-        success: true,
-        archivadas: notificacionesArchivadas.length,
-        activas: notificacionesActivas.length,
-      };
-    } catch (error) {
-      console.error("Error al archivar notificaciones de usuario:", error);
-      return { error: "Error al archivar notificaciones" };
-    }
-  }
-
   async obtenerHistorialNotificacionesUsuario(usuarioId) {
     try {
-      const claveActivas = `notificaciones:usuario:${usuarioId}`;
-      const claveArchivo = `notificaciones_archivo:usuario:${usuarioId}`;
-
-      const notificacionesActivas = await redis.lRange(claveActivas, 0, -1);
-      const notificacionesArchivadas = await redis.lRange(claveArchivo, 0, -1);
-
-      const activas = notificacionesActivas.map((notif) => {
-        const notificacion = JSON.parse(notif);
-        notificacion.estado = "activa";
-        return notificacion;
+      const lista = await notificaciones.findAll({
+        where: { id_usuario: usuarioId },
+        order: [["fecha", "DESC"]],
       });
 
-      const archivadas = notificacionesArchivadas.map((notif) => {
-        const notificacion = JSON.parse(notif);
-        notificacion.estado = "archivada";
-        return notificacion;
-      });
-
-      // Combinar y ordenar por fecha
-      const todasLasNotificaciones = [...activas, ...archivadas];
-      todasLasNotificaciones.sort(
-        (a, b) => new Date(b.fecha) - new Date(a.fecha)
-      );
-
-      return todasLasNotificaciones;
+      // Limpiar cache
+      // await redis.del(`notificaciones:usuario:${usuarioId}`);
+      return lista;
     } catch (error) {
       console.error(
         "Error al obtener historial de notificaciones de usuario:",
@@ -587,6 +465,7 @@ class UsuariosService {
       return [];
     }
   }
+
   async enviarCodigoVerificacion(correo) {
     const generarCodigo = () =>
       Math.floor(100000 + Math.random() * 900000).toString();
@@ -652,8 +531,6 @@ class UsuariosService {
     return { success: true };
   }
 
-  // === Registro con verificación previa ===
-  // Almacena temporalmente los datos del usuario en Redis y envía código.
   async preRegistrarUsuario(data) {
     try {
       const { correo } = data;
@@ -699,7 +576,6 @@ class UsuariosService {
     }
   }
 
-  // Confirma el registro: valida código, crea el usuario en DB y limpia Redis
   async confirmarRegistro(correo, codigo) {
     try {
       if (!correo || !codigo)

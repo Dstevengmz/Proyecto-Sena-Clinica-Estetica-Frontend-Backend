@@ -3,6 +3,7 @@ const { v2: cloudinary } = require("cloudinary");
 const { examen, citas } = require("../models");
 
 class ExamenControllers {
+  
   async subir(req, res) {
     try {
       const { id_cita } = req.params;
@@ -41,14 +42,13 @@ class ExamenControllers {
   async descargarSeguro(req, res) {
     try {
       const { id } = req.params;
-      const usuarioReq = req.usuario; // inyectado por auth
+      const usuarioReq = req.usuario; 
       const registro = await examen.findByPk(id, {
         include: { model: citas, as: "cita" },
       });
       if (!registro)
         return res.status(404).json({ error: "Examen no encontrado" });
 
-      // Autorización: dueño (id_usuario), doctor asignado (id_doctor) o asistente
       const cita = await citas.findByPk(registro.id_cita);
       if (!cita) return res.status(404).json({ error: "Cita no encontrada" });
       const esDoctor =
@@ -62,14 +62,12 @@ class ExamenControllers {
         return res.status(403).json({ error: "No autorizado" });
       }
 
-      const publicId = registro.archivo_examen; // guardamos public_id
-      // Si es legacy (URL completa) la devolvemos directa (no privada)
+      const publicId = registro.archivo_examen;
       if (publicId.startsWith("http")) {
         return res.json({ url: publicId, legacy: true });
       }
 
       const isPdf = publicId.toLowerCase().endsWith(".pdf");
-      // Generar URL firmada privada.
       let urlFirmada;
       if (isPdf) {
         urlFirmada = cloudinary.utils.private_download_url(publicId, "pdf", {

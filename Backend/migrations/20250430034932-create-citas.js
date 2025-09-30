@@ -51,6 +51,15 @@ module.exports = {
       nota_evolucion:{
         type: Sequelize.TEXT
       },
+      medicamentos_recetados:{
+        type: Sequelize.TEXT
+      },
+      requiere_mas_procedimientos:{
+        type: Sequelize.BOOLEAN
+      },
+          descripcion_de_procedimientos:{
+        type: Sequelize.TEXT
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

@@ -1,5 +1,6 @@
 const { examen,citas } = require('../models');
 class ExamenServices {
+  
   async subirArchivos({ id_cita, archivos }) {
     if (!archivos || archivos.length === 0) {
       throw new Error('No se enviaron archivos');
