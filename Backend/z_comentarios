@@ -14,6 +14,10 @@ npx sequelize-cli model:generate --name Historialclinico --attributes id_usuario
 npx sequelize-cli model:generate --name Citas --attributes id_usuario:integer,id_doctor:integer,id_procedimiento:integer,fecha:date,estado:string,tipo:string,observaciones:text
 
 
+# Comando Modelo Requerimientos
+ npx sequelize-cli model:generate --name requerimientos --attributes id_cita:integer,descripcion:text,frecuencia:string,repeticiones:integer,fecha_inicio:date,fecha_fin:date,estado:string
+
+
 # Comando Modelo Procedimientos
 npx sequelize-cli model:generate --name Procedimientos --attributes nombre:string,descripcion:text,precio:float,requiere_evaluacion:boolean,duracion:string,examenes_requeridos:text,imagen:string,categoria:string,recomendaciones_previas:text
 
@@ -125,3 +129,11 @@ docker exec -it backend-redis-1 redis-cli FLUSHALL
 
 # Mysql relacional 
 supabase.com
+
+
+# Comandos docker ver notificaciones local
+docker ps
+docker exec -it backend-redis-1 redis-cli
+keys * 
+si es lista---> LRANGE notificaciones:doctor:1 0 -1
+

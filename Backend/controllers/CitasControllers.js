@@ -2,6 +2,17 @@ const citasService = require("../services/CitasServices");
 const PDFDocument = require("pdfkit");
 
 class CitasControllers {
+  async crearRequerimiento(req, res) {
+    try {
+      const data = { ...req.body, id_doctor: req.usuario.id };
+      const reqCreado = await citasService.crearRequerimiento(data);
+      res.status(201).json(reqCreado);
+    } catch (e) {
+      console.error("Error creando requerimiento:", e);
+      res.status(500).json({ error: "Error al crear requerimiento" });
+    }
+  }
+
   async listarPacientesPorDoctor(req, res) {
     try {
       const doctorId = req.usuario.id;
@@ -169,8 +180,16 @@ class CitasControllers {
   async actualizarCitaDoctor(req, res) {
     try {
       const { id } = req.params;
-      const { estado, observaciones, examenes_requeridos, nota_evolucion, medicamentos_recetados, requiere_mas_procedimientos, descripcion_de_procedimientos } =
-        req.body;
+      const {
+        estado,
+        observaciones,
+        examenes_requeridos,
+        nota_evolucion,
+        medicamentos_recetados,
+        requiere_mas_procedimientos,
+        descripcion_de_procedimientos,
+        requerimientos,
+      } = req.body;
 
       const resultado = await citasService.actualizarLasCitas(id, {
         estado,
@@ -179,13 +198,32 @@ class CitasControllers {
         nota_evolucion,
         medicamentos_recetados,
         requiere_mas_procedimientos,
-        descripcion_de_procedimientos
+        descripcion_de_procedimientos,
       });
 
       if (!resultado[0])
         return res.status(404).json({ error: "Cita no encontrada" });
 
       const cita = await citasService.buscarLasCitas(id);
+      if (Array.isArray(requerimientos) && requerimientos.length > 0 && cita) {
+        for (const req of requerimientos) {
+          try {
+            await citasService.crearRequerimiento({
+              id_cita: cita.id,
+              id_usuario: cita.id_usuario,
+              id_doctor: cita.id_doctor,
+              descripcion: req.descripcion,
+              frecuencia: parseInt(req.frecuencia, 10),
+              repeticiones: parseInt(req.repeticiones, 10),
+              fecha_inicio: req.fecha_inicio,
+              estado: "pendiente",
+            });
+          } catch (err) {
+            console.error("Error creando requerimiento:", err);
+          }
+        }
+      }
+
       if (cita && cita.id_doctor) {
         if (cita.tipo === "evaluacion") {
           await citasService.notificarTotalCitasRealizadasEvaluacionHoy(
@@ -639,13 +677,13 @@ class CitasControllers {
           .font("Helvetica-Bold")
           .fontSize(9)
           .fillColor("#000")
-          .text(titulo.toUpperCase() + ":", startX, y, { continued: true });  
+          .text(titulo.toUpperCase() + ":", startX, y, { continued: true });
         doc
           .font("Helvetica")
           .fontSize(9)
           .fillColor("#333")
           .text(valor, startX + 100, y);
-      }; 
+      };
       let y = doc.y;
       label(y, "ID Cita", cita.id);
       y = doc.y + 4;
@@ -655,12 +693,15 @@ class CitasControllers {
       y = doc.y + 4;
       label(y, "Tipo", cita.tipo);
       y = doc.y + 4;
-      
+
       // Separador
-      doc.moveTo(55, y).lineTo(ancho - 55, y).stroke("#000");
+      doc
+        .moveTo(55, y)
+        .lineTo(ancho - 55, y)
+        .stroke("#000");
       y += 4;
       y += 15;
-      
+
       // Sección Medicamentos
       doc
         .font("Helvetica-Bold")

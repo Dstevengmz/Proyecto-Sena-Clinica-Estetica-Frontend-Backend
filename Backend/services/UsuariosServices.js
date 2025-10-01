@@ -105,18 +105,24 @@ class UsuariosService {
     return null;
   }
 
-  async actualizarLosUsuario(id, datos) {
-    try {
-      const usuario = await usuarios.findByPk(id);
-      if (!usuario) {
-        return { error: "Correo no registrado" };
-      }
-      let actualizado = await usuarios.update(datos, { where: { id } });
-      return actualizado;
-    } catch (e) {
-      console.log("Error en el servidor al actualizar el usuario:", e);
+async actualizarLosUsuario(id, datos, rolDelSolicitante) {
+  try {
+     if (datos.rol && rolDelSolicitante !== "doctor") {
+      delete datos.rol;
     }
+
+    const usuario = await usuarios.findByPk(id);
+    if (!usuario) {
+      return { error: "Usuario no encontrado" };
+    }
+
+    let actualizado = await usuarios.update(datos, { where: { id } });
+    return actualizado;
+  } catch (e) {
+    console.log("Error en el servidor al actualizar el usuario:", e);
+    throw e;
   }
+}
 
   async iniciarSesion(correo, contrasena) {
     try {

@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       });
       Citas.hasMany(models.notificaciones, {
         foreignKey: "id_cita",
-        as: "notificaciones"
+        as: "notificaciones",
       });
 
       Citas.belongsTo(models.ordenes, {
@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
       Citas.hasMany(models.consentimiento, {
         foreignKey: "id_cita",
         as: "consentimientos",
+      });
+      Citas.hasMany(models.requerimientos, {
+        foreignKey: "id_cita",
+        as: "requerimientos",
       });
     }
   }
@@ -47,8 +51,11 @@ module.exports = (sequelize, DataTypes) => {
       examenes_requeridos: DataTypes.TEXT,
       nota_evolucion: DataTypes.TEXT,
       medicamentos_recetados: DataTypes.TEXT,
-      requiere_mas_procedimientos: DataTypes.BOOLEAN,
-      descripcion_de_procedimientos: DataTypes.TEXT,
+      origen: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+
       examenes_cargados: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,

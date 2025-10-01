@@ -1,3 +1,5 @@
+const HorariosDisponibles = require("../assets/HorariosDisponibles");
+
 const {
   citas,
   usuarios,
@@ -9,6 +11,8 @@ const {
   procedimientos,
   examen,
   notificaciones,
+  requerimientos,
+  consentimiento,
 } = require("../models");
 const { EnviarCorreo } = require("../assets/corre");
 const { ValidarLaCita } = require("../assets/Validarfecharegistro");
@@ -16,7 +20,93 @@ const { Op } = require("sequelize");
 const redis = require("../config/redis");
 const moment = require("moment-timezone");
 class HistorialClinicoService {
-  
+  async crearRequerimiento(data) {
+    const nuevoReq = await requerimientos.create(data);
+
+    let actual = moment(data.fecha_inicio);
+
+    for (let i = 0; i < data.repeticiones; i++) {
+      let citaAsignada = false;
+      let reintentos = 0;
+      const MaximoIntentos = 10;
+      while (!citaAsignada && reintentos < MaximoIntentos) {
+        const fechaStr = actual.format("YYYY-MM-DD");
+
+        const horarios = HorariosDisponibles.horarios();
+
+        const inicioDelDia = moment
+          .tz(`${fechaStr}T00:00:00`, "America/Bogota")
+          .toDate();
+        const finDelDia = moment
+          .tz(`${fechaStr}T23:59:59`, "America/Bogota")
+          .toDate();
+
+        const citasDelDia = await citas.findAll({
+          where: {
+            id_doctor: data.id_doctor,
+            fecha: { [Op.between]: [inicioDelDia, finDelDia] },
+            estado: { [Op.ne]: "cancelada" },
+          },
+        });
+
+        let horaAsignada = null;
+        for (const h of horarios) {
+          const inicio = moment
+            .tz(`${fechaStr}T${h}:00`, "America/Bogota")
+            .toDate();
+          const fin = new Date(
+            inicio.getTime() +
+              HorariosDisponibles.duraciones().procedimiento * 60000
+          );
+
+          const ocupado = citasDelDia.some((c) => {
+            const inicioOcupado = new Date(c.fecha);
+            const finOcupado = new Date(
+              inicioOcupado.getTime() +
+                HorariosDisponibles.duraciones()[c.tipo] * 60000
+            );
+            return (
+              (inicio >= inicioOcupado && inicio < finOcupado) ||
+              (fin > inicioOcupado && fin <= finOcupado) ||
+              (inicio <= inicioOcupado && fin >= finOcupado)
+            );
+          });
+
+          if (!ocupado) {
+            horaAsignada = inicio;
+            break;
+          }
+        }
+
+        if (horaAsignada) {
+          await citas.create({
+            id_usuario: data.id_usuario,
+            id_doctor: data.id_doctor,
+            fecha: horaAsignada,
+            tipo: "procedimiento",
+            estado: "pendiente",
+            observaciones: data.descripcion,
+            origen: "requerimiento",
+          });
+          citaAsignada = true;
+        } else {
+          actual = actual.add(1, "days");
+          reintentos++;
+        }
+      }
+
+      if (citaAsignada) {
+        actual = actual.add(data.frecuencia, "days");
+      } else {
+        throw new Error(
+          "No se pudo asignar la cita después de varios intentos."
+        );
+      }
+    }
+
+    return nuevoReq;
+  }
+
   async notificarTotalCitasRealizadasProcedimientoHoy(doctorId) {
     try {
       const inicioDelDia = moment.tz("America/Bogota").startOf("day").toDate();
@@ -317,6 +407,10 @@ class HistorialClinicoService {
           model: usuarios,
           as: "doctor",
           attributes: ["nombre"],
+        },
+        { model: requerimientos,
+          as: "requerimientos",
+          attributes: ["descripcion", "fecha_inicio", "frecuencia", "repeticiones"],
         },
       ],
     });
@@ -875,4 +969,5 @@ class HistorialClinicoService {
     return cita;
   }
 }
+
 module.exports = new HistorialClinicoService();

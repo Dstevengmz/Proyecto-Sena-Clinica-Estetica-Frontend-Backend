@@ -1,76 +1,79 @@
-'use strict';
+"use strict";
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('citas', {
+    await queryInterface.createTable("citas", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       id_orden: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'ordenes',
-          key: 'id'
+          model: "ordenes",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       id_usuario: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'usuarios',
-          key: 'id'
+          model: "usuarios",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       id_doctor: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'usuarios',
-          key: 'id'
+          model: "usuarios",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       fecha: {
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       estado: {
-        type: Sequelize.ENUM('pendiente', 'confirmada', 'realizada', 'cancelada')
+        type: Sequelize.ENUM(
+          "pendiente",
+          "confirmada",
+          "realizada",
+          "cancelada"
+        ),
       },
       tipo: {
-        type: Sequelize.ENUM('evaluacion', 'procedimiento')
+        type: Sequelize.ENUM("evaluacion", "procedimiento"),
       },
       observaciones: {
-        type: Sequelize.TEXT
+        type: Sequelize.TEXT,
       },
-      nota_evolucion:{
-        type: Sequelize.TEXT
+      nota_evolucion: {
+        type: Sequelize.TEXT,
       },
-      medicamentos_recetados:{
-        type: Sequelize.TEXT
+      medicamentos_recetados: {
+        type: Sequelize.TEXT,
       },
-      requiere_mas_procedimientos:{
-        type: Sequelize.BOOLEAN
-      },
-          descripcion_de_procedimientos:{
-        type: Sequelize.TEXT
+      origen: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('citas');
-  }
+    await queryInterface.dropTable("citas");
+  },
 };

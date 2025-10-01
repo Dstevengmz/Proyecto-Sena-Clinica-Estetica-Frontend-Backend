@@ -96,4 +96,12 @@ router.patch(
   CitaController.marcarExamenesSubidos
 );
 
+router.post(
+  "/requerimientos",
+  authorization,
+  verificarRol(["doctor"]),
+  CitaController.crearRequerimiento
+);
+
+
 module.exports = router;

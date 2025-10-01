@@ -1,7 +1,6 @@
 const consentimientoService = require("../services/ConsentimientoService");
 const { citas, ordenes, procedimientos, usuarios } = require("../models");
 class ConsentimientoController {
-  // Listar consentimientos del usuario autenticado
   async obtenerConsentimientosPorUsuario(req, res) {
     try {
       const id_usuario = req.usuario.id;
@@ -18,7 +17,6 @@ class ConsentimientoController {
     }
   }
 
-  // Listar consentimientos por cita
   async obtenerConsentimientosPorCita(req, res) {
     try {
       const { id_cita } = req.params;
