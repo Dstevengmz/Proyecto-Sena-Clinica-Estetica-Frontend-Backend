@@ -1,5 +1,5 @@
 {
-  "name": "clinica-rejuvenezk",
+  "name": "clinestetica",
   "version": "1.0.0",
   "description": "Clinica estetica clinica-rejuvenezk Realizado en el sena para optar por el titulo de Desarrollador de software",
   "main": "index.js",
@@ -10,7 +10,7 @@
     "dev": "nodemon app.js",
     "start": "node app.js"
   },
-  "author": "Darwin,lilian,Liliana,Valery,Constanza",
+  "author": "Darwin,Liliana,Constanza",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
