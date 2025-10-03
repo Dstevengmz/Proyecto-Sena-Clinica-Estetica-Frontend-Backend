@@ -18,7 +18,7 @@ router.get(
   ProcedimientoController.buscarProcedimientos
 );
 router.post(
-  "/crearprocedimiento",
+  "/crearprocedimiento",authorization,verificarRol(["doctor","asistente"]),
   authorization,
   upload.fields([
     { name: "imagen", maxCount: 1 },
@@ -29,7 +29,7 @@ router.post(
 );
 router.patch(
   "/editarprocedimiento/:id",
-  authorization,
+  authorization,verificarRol(["doctor","asistente"]),
   upload.fields([
     { name: "imagen", maxCount: 1 },
     { name: "imagenes", maxCount: 10 },
@@ -39,7 +39,7 @@ router.patch(
 );
 router.delete(
   "/eliminarprocedimiento/:id",
-  authorization,
+  authorization,verificarRol(["doctor","asistente"]),
   ProcedimientoController.eliminarProcedimientos
 );
 

@@ -20,11 +20,59 @@ const { Op } = require("sequelize");
 const redis = require("../config/redis");
 const moment = require("moment-timezone");
 class HistorialClinicoService {
+  async calcularTotalesPorRango(doctorId, inicio, fin) {
+    const where = {
+      fecha: { [Op.between]: [inicio, fin] },
+    };
+    if (doctorId) where.id_doctor = doctorId;
+
+    const citasRango = await citas.findAll({ where });
+
+    return {
+      total: citasRango.length,
+      canceladas: citasRango.filter((c) => c.estado === "cancelada").length,
+      pendientes: citasRango.filter((c) => c.estado === "pendiente").length,
+      realizadasEvaluacion: citasRango.filter(
+        (c) => c.estado === "realizada" && c.tipo === "evaluacion"
+      ).length,
+      realizadasProcedimiento: citasRango.filter(
+        (c) => c.estado === "realizada" && c.tipo === "procedimiento"
+      ).length,
+    };
+  }
+
+  async notificarTotalesDia(doctorId) {
+    const inicio = moment.tz("America/Bogota").startOf("day").toDate();
+    const fin = moment.tz("America/Bogota").endOf("day").toDate();
+
+    const totales = await this.calcularTotalesPorRango(doctorId, inicio, fin);
+    global.io.to(`doctor_${doctorId}`).emit("totalesDia", totales);
+  }
+
+  async notificarTotalesSemana(doctorId) {
+    const inicio = moment.tz("America/Bogota").startOf("week").toDate();
+    const fin = moment.tz("America/Bogota").endOf("week").toDate();
+
+    const totales = await this.calcularTotalesPorRango(doctorId, inicio, fin);
+    global.io.to(`doctor_${doctorId}`).emit("totalesSemana", totales);
+  }
+
+  async notificarTotalesMes(doctorId) {
+    const inicio = moment.tz("America/Bogota").startOf("month").toDate();
+    const fin = moment.tz("America/Bogota").endOf("month").toDate();
+
+    const totales = await this.calcularTotalesPorRango(doctorId, inicio, fin);
+    global.io.to(`doctor_${doctorId}`).emit("totalesMes", totales);
+  }
+
   async crearRequerimiento(data) {
     const nuevoReq = await requerimientos.create(data);
 
     let actual = moment(data.fecha_inicio);
 
+    if (actual.day() === 0) {
+      actual = actual.add(1, "days");
+    }
     for (let i = 0; i < data.repeticiones; i++) {
       let citaAsignada = false;
       let reintentos = 0;
@@ -91,12 +139,18 @@ class HistorialClinicoService {
           citaAsignada = true;
         } else {
           actual = actual.add(1, "days");
+          if (actual.day() === 0) {
+            actual = actual.add(1, "days");
+          }
           reintentos++;
         }
       }
 
       if (citaAsignada) {
         actual = actual.add(data.frecuencia, "days");
+        if (actual.day() === 0) {
+          actual = actual.add(1, "days");
+        }
       } else {
         throw new Error(
           "No se pudo asignar la cita después de varios intentos."
@@ -408,9 +462,15 @@ class HistorialClinicoService {
           as: "doctor",
           attributes: ["nombre"],
         },
-        { model: requerimientos,
+        {
+          model: requerimientos,
           as: "requerimientos",
-          attributes: ["descripcion", "fecha_inicio", "frecuencia", "repeticiones"],
+          attributes: [
+            "descripcion",
+            "fecha_inicio",
+            "frecuencia",
+            "repeticiones",
+          ],
         },
       ],
     });
@@ -419,6 +479,11 @@ class HistorialClinicoService {
   async crearLasCitas(data) {
     if (data?.fecha) {
       const m = moment.tz(data.fecha, "America/Bogota");
+      if (m.day() === 0) {
+        const err = new Error("No se pueden agendar citas los domingos.");
+        err.status = 400;
+        throw err;
+      }
       data.fecha = m.toDate();
     }
     ValidarLaCita(data);
@@ -966,6 +1031,78 @@ class HistorialClinicoService {
     } catch (e) {
       console.error("Error emitiendo notificación de exámenes:", e);
     }
+    return cita;
+  }
+
+  async reagendarCita(id, usuario, nuevaFecha) {
+    const cita = await citas.findByPk(id, {
+      include: [
+        {
+          model: usuarios,
+          as: "usuario",
+          attributes: ["id", "nombre"],
+        },
+      ],
+    });
+
+    if (!cita) {
+      const err = new Error("Cita no encontrada");
+      err.status = 404;
+      throw err;
+    }
+
+    // Validar roles permitidos
+    if (usuario.rol !== "usuario" && usuario.rol !== "asistente") {
+      const err = new Error("No autorizado para reagendar esta cita");
+      err.status = 403;
+      throw err;
+    }
+
+    // Si es usuario, validar que la cita le pertenece
+    if (
+      usuario.rol === "usuario" &&
+      parseInt(cita.id_usuario) !== parseInt(usuario.id)
+    ) {
+      const err = new Error(
+        "No autorizado: la cita no pertenece a este usuario"
+      );
+      err.status = 403;
+      throw err;
+    }
+
+    // Validar que la nueva fecha no sea domingo
+    const m = moment.tz(nuevaFecha, "America/Bogota");
+    if (m.day() === 0) {
+      const err = new Error("No se pueden agendar citas los domingos");
+      err.status = 400;
+      throw err;
+    }
+
+    // Actualizar fecha/hora
+    cita.fecha = m.toDate();
+    await cita.save();
+
+    // Notificar en tiempo real al doctor que la cita fue reagendada
+    try {
+      const doctorId = cita.id_doctor;
+      if (doctorId && global.io) {
+        const fechaLocal = moment
+          .tz(cita.fecha, "America/Bogota")
+          .format("DD/MM/YYYY HH:mm");
+        const mensaje = `La cita del paciente #${cita.usuario?.nombre} fue reagendada para ${fechaLocal}.`;
+        await this.guardarYEmitirNotificacion(global.io, doctorId, {
+          citaId: cita.id,
+          tipo: "cita_reagendada",
+          mensaje,
+          fecha: new Date().toISOString(),
+          ruta: `/citas/${cita.id}`,
+        });
+      }
+    } catch (e) {
+      console.error("Error al notificar reagendo de cita:", e);
+      // No interrumpir el flujo por un fallo de notificación
+    }
+
     return cita;
   }
 }

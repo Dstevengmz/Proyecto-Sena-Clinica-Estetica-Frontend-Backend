@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { usuarios } = require("../models");
+const { usuarios, historialclinico } = require("../models");
 const authorization = async (req, res, next) => {
   const token = req.header("Authorization");
   if (!token) {
@@ -47,3 +47,41 @@ const verificarRol = (rolesPermitidos) => (req, res, next) => {
 };
 
 module.exports = { authorization, verificarRol };
+
+// Permitir acceso si es doctor o dueño del historial por :id (id del historial)
+// Permitir acceso si es doctor o propietario del historial (por :id de historial)
+const permitirDoctorOPropietarioPorIdHistorial = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!id || isNaN(id)) {
+      return res.status(400).json({ mensaje: "ID de historial inválido" });
+    }
+    const record = await historialclinico.findByPk(id);
+    if (!record) {
+      return res.status(404).json({ mensaje: "Historial médico no encontrado" });
+    }
+    const esDoctor = req.usuario?.rol === "doctor";
+    const idPropietario = record.id_usuario ?? record.usuario_id;
+    const esPropietario = Number(req.usuario?.id) === Number(idPropietario);
+    if (!esDoctor && !esPropietario) {
+      return res.status(403).json({ mensaje: "Acceso denegado por pertenencia" });
+    }
+    next();
+  } catch (e) {
+    console.error("Error en permitirDoctorOPropietarioPorIdHistorial:", e);
+    return res.status(500).json({ mensaje: "Error interno del servidor" });
+  }
+};
+
+const permitirDoctorOPropietarioPorIdUsuario = (req, res, next) => {
+  const { id } = req.params;
+  const esDoctor = req.usuario?.rol === "doctor";
+  const esPropietario = Number(req.usuario?.id) === Number(id);
+  if (!esDoctor && !esPropietario) {
+    return res.status(403).json({ mensaje: "Acceso denegado por rol/pertenencia" });
+  }
+  next();
+};
+
+module.exports.permitirDoctorOPropietarioPorIdHistorial = permitirDoctorOPropietarioPorIdHistorial;
+module.exports.permitirDoctorOPropietarioPorIdUsuario = permitirDoctorOPropietarioPorIdUsuario;

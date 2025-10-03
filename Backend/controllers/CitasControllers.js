@@ -86,6 +86,10 @@ class CitasControllers {
         await citasService.notificarTotalCitasRealizadasEvaluacionHoy(
           cita.id_doctor
         );
+
+        await citasService.notificarTotalesDia(cita.id_doctor);
+        await citasService.notificarTotalesSemana(cita.id_doctor);
+        await citasService.notificarTotalesMes(cita.id_doctor);
       }
       res.json({ mensaje: "Cita cancelada correctamente" });
     } catch (e) {
@@ -150,6 +154,9 @@ class CitasControllers {
             nuevocitas.id_doctor
           );
         }
+        await citasService.notificarTotalesDia(nuevocitas.id_doctor);
+        await citasService.notificarTotalesSemana(nuevocitas.id_doctor);
+        await citasService.notificarTotalesMes(nuevocitas.id_doctor);
       }
 
       res.status(201).json(nuevocitas);
@@ -295,11 +302,10 @@ class CitasControllers {
   }
 
   async citasPorDia(req, res) {
-    const { doctorId } = req.params; // Recibir doctorId de la URL
-    const { fecha } = req.query; // Recibir la fecha de la consulta (ej: 2025-08-05)
+    const { doctorId } = req.params;
+    const { fecha } = req.query;
 
     try {
-      // Llamar al servicio para obtener las citas del doctor en el día solicitado
       const citas = await citasService.obtenerCitasPorDia(doctorId, fecha);
 
       if (citas.length > 0) {
@@ -399,6 +405,10 @@ class CitasControllers {
         }
 
         await citasService.notificarTotalCitasPendientesHoy(cita.id_doctor);
+
+        await citasService.notificarTotalesDia(cita.id_doctor);
+        await citasService.notificarTotalesSemana(cita.id_doctor);
+        await citasService.notificarTotalesMes(cita.id_doctor);
       }
 
       res.json({
@@ -817,6 +827,29 @@ class CitasControllers {
       res
         .status(status)
         .json({ error: e.message || "Error al marcar exámenes" });
+    }
+  }
+
+  async reagendar(req, res) {
+    try {
+      const { id } = req.params;
+      const { fecha } = req.body;
+      const usuario = req.usuario; 
+
+      const citaReagendada = await citasService.reagendarCita(
+        id,
+        usuario,
+        fecha
+      );
+
+      res.json({
+        mensaje: "Cita reagendada correctamente",
+        cita: citaReagendada,
+      });
+    } catch (error) {
+      console.error("Error al reagendar cita:", error);
+      const status = error.status || 500;
+      res.status(status).json({ error: error.message });
     }
   }
 }

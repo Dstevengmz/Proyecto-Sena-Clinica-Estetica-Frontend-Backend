@@ -103,5 +103,11 @@ router.post(
   CitaController.crearRequerimiento
 );
 
+router.patch(
+  "/reagendarcita/:id",
+  authorization,
+  verificarRol(["usuario", "asistente"]),
+  CitaController.reagendar
+);
 
 module.exports = router;

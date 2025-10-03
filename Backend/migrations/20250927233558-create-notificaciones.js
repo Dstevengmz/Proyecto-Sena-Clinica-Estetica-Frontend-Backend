@@ -34,7 +34,10 @@ module.exports = {
           "cita",
           "confirmacion_cita",
           "examenes",
-          "sistema"
+          "sistema",
+          "cita_reagendada",
+          "cancelada",
+          "eliminada"
         ),
         allowNull: false,
       },
