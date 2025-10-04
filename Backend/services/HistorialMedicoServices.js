@@ -71,6 +71,12 @@ class HistorialClinicoService {
   }
 
   async crearLosHistorialesClinicos(data) {
+    const existingRecord = await historialclinico.findOne({
+      where: { id_usuario: data.id_usuario },
+    });
+    if (existingRecord) {
+      throw new Error("El usuario ya tiene un historial médico registrado.");
+    }
     return await historialclinico.create(data);
   }
 

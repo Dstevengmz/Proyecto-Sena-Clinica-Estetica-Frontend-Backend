@@ -25,8 +25,6 @@ class HistorialMedicoController {
       : res.status(404).json({ error: "historialmedico no encontrado" });
   }
 
-
-
   async miHistorialMedico(req, res) {
   const { id } = req.params;
   const userIdFromToken = req.usuario.id;
