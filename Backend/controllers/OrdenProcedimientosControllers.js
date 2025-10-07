@@ -8,7 +8,7 @@ class OrdenProcedimientoController {
 
   async buscarOrdenesProcedimientos(req, res) {
     const ordenprocedimiento = await OrdenProcedimientoServices.buscarLasOrdenesProcedimientos(req.params.id);
-    orden ? res.json(ordenprocedimiento) : res.status(404).json({ error: "Orden Procedimiento no encontrada" });
+    ordenprocedimiento ? res.json(ordenprocedimiento) : res.status(404).json({ error: "Orden Procedimiento no encontrada" });
   }
 
   async crearOrdenesProcedimientos(req, res) {

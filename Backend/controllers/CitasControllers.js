@@ -456,7 +456,6 @@ class CitasControllers {
         .rect(30, 30, ancho - 60, alto - 60)
         .stroke("#000");
 
-      // Watermark (símbolo médico)
       doc.save();
       doc
         .fontSize(200)
@@ -750,8 +749,6 @@ class CitasControllers {
           .text(cita.observaciones, { width: ancho - 110 });
         y = doc.y + 12;
       }
-
-      // Línea firma
       const firmaY = alto - 170;
       try {
         const path = require("path");
@@ -834,7 +831,7 @@ class CitasControllers {
     try {
       const { id } = req.params;
       const { fecha } = req.body;
-      const usuario = req.usuario; 
+      const usuario = req.usuario;
 
       const citaReagendada = await citasService.reagendarCita(
         id,
@@ -850,6 +847,16 @@ class CitasControllers {
       console.error("Error al reagendar cita:", error);
       const status = error.status || 500;
       res.status(status).json({ error: error.message });
+    }
+  }
+
+  async consultarTodasLasCitasAsistente(req, res) {
+    try {
+      const citas = await citasService.consultarTodasLasCitasAsistente();
+      res.json(citas);
+    } catch (error) {
+      console.error("Error al listar citas de usuarios:", error);
+      res.status(500).json({ error: "Error al obtener las citas" });
     }
   }
 }

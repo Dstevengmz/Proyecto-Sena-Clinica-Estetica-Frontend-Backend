@@ -130,10 +130,10 @@ docker exec -it backend-redis-1 redis-cli FLUSHALL
 # Mysql relacional 
 supabase.com
 
-
 # Comandos docker ver notificaciones local
 docker ps
 docker exec -it backend-redis-1 redis-cli
 keys * 
 si es lista---> LRANGE notificaciones:doctor:1 0 -1
 
+automatizadas jets

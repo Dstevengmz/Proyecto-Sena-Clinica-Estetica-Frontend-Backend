@@ -866,7 +866,6 @@ class HistorialClinicoService {
 
   async obtenerCitasPorTipo(doctorId, tipo, fecha) {
     try {
-      // Usamos moment para verificar si la fecha es válida
       const startOfDay = moment
         .tz(`${fecha}T00:00:00`, "America/Bogota")
         .toDate();
@@ -874,7 +873,6 @@ class HistorialClinicoService {
         .tz(`${fecha}T23:59:59`, "America/Bogota")
         .toDate();
 
-      // Realizamos la consulta, filtrando por tipo, doctor y fecha
       return await citas.findAll({
         where: {
           id_doctor: doctorId,
@@ -1051,14 +1049,12 @@ class HistorialClinicoService {
       throw err;
     }
 
-    // Validar roles permitidos
     if (usuario.rol !== "usuario" && usuario.rol !== "asistente") {
       const err = new Error("No autorizado para reagendar esta cita");
       err.status = 403;
       throw err;
     }
 
-    // Si es usuario, validar que la cita le pertenece
     if (
       usuario.rol === "usuario" &&
       parseInt(cita.id_usuario) !== parseInt(usuario.id)
@@ -1070,7 +1066,6 @@ class HistorialClinicoService {
       throw err;
     }
 
-    // Validar que la nueva fecha no sea domingo
     const m = moment.tz(nuevaFecha, "America/Bogota");
     if (m.day() === 0) {
       const err = new Error("No se pueden agendar citas los domingos");
@@ -1078,11 +1073,9 @@ class HistorialClinicoService {
       throw err;
     }
 
-    // Actualizar fecha/hora
     cita.fecha = m.toDate();
     await cita.save();
 
-    // Notificar en tiempo real al doctor que la cita fue reagendada
     try {
       const doctorId = cita.id_doctor;
       if (doctorId && global.io) {
@@ -1100,10 +1093,43 @@ class HistorialClinicoService {
       }
     } catch (e) {
       console.error("Error al notificar reagendo de cita:", e);
-      // No interrumpir el flujo por un fallo de notificación
     }
 
     return cita;
+  }
+
+  async consultarTodasLasCitasAsistente() {
+    return await citas.findAll({
+      include: [
+        {
+          model: usuarios,
+          as: "usuario",
+          attributes: ["nombre", "correo", "telefono"],
+          required: true,
+        },
+        {
+          model: usuarios,
+          as: "doctor",
+          attributes: ["nombre", "ocupacion"],
+        },
+        {
+          model: ordenes,
+          as: "orden",
+          include: [
+            {
+              model: procedimientos,
+              as: "procedimientos",
+              through: { attributes: [] },
+            },
+          ],
+        },
+        {
+          model: examen,
+          as: "examenes",
+        },
+      ],
+      order: [["fecha", "ASC"]],
+    });
   }
 }
 

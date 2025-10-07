@@ -1,0 +1,43 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Jest tests with coverage",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"coverage"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "run jest tests",
+			"type": "shell",
+			"command": "npm test --silent",
+			"args": [],
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run Jest tests (Backend)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"test",
+				"--silent"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		}
+	]
+}

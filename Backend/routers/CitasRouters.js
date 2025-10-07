@@ -49,7 +49,7 @@ router.get(
 
 router.delete(
   "/eliminarcitas/:id",
-  authorization,
+  authorization,verificarRol(["doctor"]),
   CitaController.eliminarCitas
 );
 router.get(
@@ -108,6 +108,13 @@ router.patch(
   authorization,
   verificarRol(["usuario", "asistente"]),
   CitaController.reagendar
+);
+
+router.get(
+  "/listarcitastodosusuariodesdeasistente",
+  authorization,
+  verificarRol(["asistente"]),
+  CitaController.consultarTodasLasCitasAsistente
 );
 
 module.exports = router;

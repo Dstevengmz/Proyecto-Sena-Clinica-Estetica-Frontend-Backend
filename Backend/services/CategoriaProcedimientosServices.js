@@ -115,4 +115,10 @@ class CategoriaProcedimientosService {
   }
 }
 
-module.exports = new CategoriaProcedimientosService();
+// Export compatible with both default instance import and named destructuring in tests
+const instance = new CategoriaProcedimientosService();
+// Attach helpers on the instance so require() can be used as either default or with named props
+instance.normalizeNombre = normalizeNombre;
+instance.service = instance;
+
+module.exports = instance;

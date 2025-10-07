@@ -81,9 +81,9 @@ class HistorialClinicoService {
   }
 
   async eliminarLosHistorialesClinicos(id) {
-    const historialclinico = await historialclinico.findByPk(id);
-    if (historialclinico) {
-      return await historialclinico.destroy();
+    const registro = await historialclinico.findByPk(id);
+    if (registro) {
+      return await registro.destroy();
     }
     return null;
   }
