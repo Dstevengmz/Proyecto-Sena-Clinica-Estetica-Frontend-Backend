@@ -585,6 +585,10 @@ class HistorialClinicoService {
     }
     const creacita = await citas.create(data);
     let usuario, doctor;
+    const fechaLocal = moment
+      .tz(data.fecha, "America/Bogota")
+      .format("DD/MM/YYYY hh:mm A");
+
     try {
       usuario = await usuarios.findByPk(data.id_usuario);
       doctor = await usuarios.findByPk(data.id_doctor);
@@ -603,7 +607,7 @@ class HistorialClinicoService {
         subject: "Cita registrada",
         message: `
      <h2>Hola ${doctor.nombre}, El paciente  ${usuario.nombre} ha registrado una cita</h2>
-      <p>Fecha y hora de la cita: <strong>${data.fecha} horas</strong></p>
+      <p>Fecha y hora de la cita: <strong>${fechaLocal} horas</strong></p>
       <p>Tipo de cita: <strong>${data.tipo}</strong></p>
     `,
       });
@@ -617,7 +621,7 @@ class HistorialClinicoService {
         subject: "Cita creada correctamente",
         message: `
      <h2>Hola ${usuario.nombre}, tu cita ha sido creada correctamente</h2>
-      <p>Fecha y hora de la cita: <strong>${data.fecha} horas</strong></p>
+      <p>Fecha y hora de la cita: <strong>${fechaLocal} horas</strong></p>
       <p>Doctor: <strong>${doctor.nombre}</strong></p>
       <p>Tipo de cita: <strong>${data.tipo}</strong></p>
       <p>Tu cita en <strong>Clinestetica</strong> fue creada exitosamente.</p>
@@ -629,9 +633,11 @@ class HistorialClinicoService {
     }
     try {
       await this.guardarYEmitirNotificacion(global.io, data.id_doctor, {
-        mensaje: `📅 Nueva cita con ${usuario?.nombre || "Paciente"} para el ${
-          data.fecha
-        }`,
+        // mensaje: `📅 Nueva cita con ${usuario?.nombre || "Paciente"} para el ${
+        //   data.fecha
+        // }`,
+        mensaje: `📅 Nueva cita con ${usuario?.nombre || "Paciente"} para el ${fechaLocal}`,
+
         fecha: new Date().toISOString(),
         tipo: "cita",
         citaId: creacita.id,
@@ -648,7 +654,8 @@ class HistorialClinicoService {
     // Enviar notificación al usuario/paciente
     try {
       await this.guardarYEmitirNotificacionUsuario(global.io, data.id_usuario, {
-        mensaje: `📅 Tu cita ha sido confirmada para el ${data.fecha}`,
+        // mensaje: `📅 Tu cita ha sido confirmada para el ${data.fecha}`,
+        mensaje: `📅 Tu cita ha sido confirmada para el ${fechaLocal}`,
         fecha: new Date().toISOString(),
         tipo: "confirmacion_cita",
         citaId: creacita.id,
