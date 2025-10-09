@@ -35,7 +35,8 @@
     "pdfkit-table": "^0.1.99",
     "redis": "^5.6.1",
     "sequelize": "^6.37.7",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "stream-buffers": "^3.0.3"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",

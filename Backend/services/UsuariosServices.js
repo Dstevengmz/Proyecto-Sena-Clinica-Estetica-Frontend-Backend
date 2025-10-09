@@ -51,6 +51,23 @@ class UsuariosService {
     const nombreLimpio = LimpiarNombre(data.nombre);
     data.nombre = nombreLimpio;
     const hashedPassword = await bcrypt.hash(data.contrasena, hashaleatorio);
+    // Validar duplicados muy importante: correo y número de documento
+    const existeCorreo = await usuarios.findOne({ where: { correo: data.correo } });
+    if (existeCorreo) {
+      const err = new Error("El correo ya está registrado.");
+      err.status = 409;
+      throw err;
+    }
+
+    if (data.numerodocumento) {
+      const existeDocumento = await usuarios.findOne({ where: { numerodocumento: data.numerodocumento } });
+      if (existeDocumento) {
+        const err = new Error("El número de documento ya está registrado.");
+        err.status = 409;
+        throw err;
+      }
+    }
+
     const nuevoUsuario = await usuarios.create({
       ...data,
       nombre: nombreLimpio,
@@ -75,6 +92,19 @@ class UsuariosService {
   async crearLosUsuariosAdmin(data) {
     const nombreLimpio = LimpiarNombre(data.nombre);
     data.nombre = nombreLimpio;
+
+    const existeCorreo = await usuarios.findOne({ where: { correo: data.correo } });
+  if (existeCorreo) {
+    const err = new Error("El correo ya está registrado.");
+    err.status = 400;
+    throw err;
+  }
+   const existeDocumento = await usuarios.findOne({ where: { numerodocumento: data.numerodocumento } });
+  if (existeDocumento) {
+    const err = new Error("El número de documento ya está registrado.");
+    err.status = 400;
+    throw err;
+  }
     const hashedPassword = await bcrypt.hash(data.contrasena, hashaleatorio);
     const nuevoUsuario = await usuarios.create({
       ...data,
@@ -105,24 +135,51 @@ class UsuariosService {
     return null;
   }
 
-async actualizarLosUsuario(id, datos, rolDelSolicitante) {
-  try {
-     if (datos.rol && rolDelSolicitante !== "doctor") {
-      delete datos.rol;
-    }
+  async actualizarLosUsuario(id, datos, rolDelSolicitante) {
+    try {
+      if (datos.rol && rolDelSolicitante !== "doctor") {
+        delete datos.rol;
+      }
 
-    const usuario = await usuarios.findByPk(id);
-    if (!usuario) {
-      return { error: "Usuario no encontrado" };
-    }
+      const usuario = await usuarios.findByPk(id);
+      if (!usuario) {
+        return { error: "Usuario no encontrado" };
+      }
 
-    let actualizado = await usuarios.update(datos, { where: { id } });
-    return actualizado;
-  } catch (e) {
-    console.log("Error en el servidor al actualizar el usuario:", e);
-    throw e;
+      if (datos.correo) {
+        const nuevoCorreo = (datos.correo || "").trim().toLowerCase();
+        const correoActual = (usuario.correo || "").trim().toLowerCase();
+        if (nuevoCorreo && nuevoCorreo !== correoActual) {
+          const existe = await usuarios.findOne({ where: { correo: nuevoCorreo } });
+          if (existe && String(existe.id) !== String(id)) {
+            const err = new Error("El correo ya está registrado.");
+            err.status = 409;
+            throw err;
+          }
+        }
+      }
+
+      if (datos.numerodocumento) {
+        const nuevoDoc = (datos.numerodocumento || "").toString();
+        const docActual = (usuario.numerodocumento || "").toString();
+        if (nuevoDoc && nuevoDoc !== docActual) {
+          const existeDoc = await usuarios.findOne({ where: { numerodocumento: nuevoDoc } });
+          if (existeDoc && String(existeDoc.id) !== String(id)) {
+            const err = new Error("El número de documento ya está registrado.");
+            err.status = 409;
+            throw err;
+          }
+        }
+      }
+
+      await usuarios.update(datos, { where: { id } });
+      const actualizado = await usuarios.findByPk(id);
+      return { success: true, usuario: actualizado };
+    } catch (e) {
+      console.log("Error en el servidor al actualizar el usuario:", e);
+      throw e;
+    }
   }
-}
 
   async iniciarSesion(correo, contrasena) {
     try {
@@ -542,10 +599,16 @@ async actualizarLosUsuario(id, datos, rolDelSolicitante) {
       const { correo } = data;
       if (!correo) return { error: "Correo es requerido" };
 
-      // ¿Existe ya usuario definitivo?
+      // Existe ya usuario definitivo
       const existente = await usuarios.findOne({ where: { correo } });
       if (existente) {
         return { error: "El correo ya está registrado." };
+      }
+      if (data.numerodocumento) {
+        const existeDoc = await usuarios.findOne({ where: { numerodocumento: data.numerodocumento } });
+        if (existeDoc) {
+          return { error: "El número de documento ya está registrado." };
+        }
       }
 
       const key = `registro_pendiente:${correo}`;
@@ -562,7 +625,7 @@ async actualizarLosUsuario(id, datos, rolDelSolicitante) {
         ...data,
         contrasena: hashedPassword,
         rol: "usuario",
-        estado: true, // usuario activo una vez se confirme
+        estado: true, 
         fechaPreRegistro: new Date().toISOString(),
       };
 
@@ -600,11 +663,16 @@ async actualizarLosUsuario(id, datos, rolDelSolicitante) {
       }
       const data = JSON.parse(dataStr);
 
-      // Seguridad extra: evitar duplicado si otro proceso ya creó
+      // Seguridad  evitar duplicado si otro proceso ya creó
       const ya = await usuarios.findOne({ where: { correo } });
       if (ya) {
         await redis.del(key);
         return { error: "El correo ya está registrado." };
+      }
+      const yaDocumento = await usuarios.findOne({ where: { numerodocumento: data.numerodocumento } });
+      if (yaDocumento) {
+        await redis.del(key);
+        return { error: "El número de documento ya está registrado." };
       }
 
       const nuevoUsuario = await usuarios.create({

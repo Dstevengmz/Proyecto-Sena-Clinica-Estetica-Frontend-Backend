@@ -49,7 +49,8 @@ router.get(
 
 router.delete(
   "/eliminarcitas/:id",
-  authorization,verificarRol(["doctor"]),
+  authorization,
+  verificarRol(["doctor"]),
   CitaController.eliminarCitas
 );
 router.get(
@@ -116,5 +117,23 @@ router.get(
   verificarRol(["asistente"]),
   CitaController.consultarTodasLasCitasAsistente
 );
+
+router.get(
+  "/historialcompleto/:id_usuario/:fecha",
+  authorization,
+  verificarRol(["asistente"]),
+  CitaController.obtenerHistorialCompletoHastaFecha
+);
+
+router.get(
+  "/historialcompletopdf/:id_usuario/:fecha",
+  authorization,
+  verificarRol(["asistente"]),
+  CitaController.generarYEnviarHistorialPDF
+);
+
+router.get("/historial/download/:publicId", CitaController.descargarHistorial);
+
+
 
 module.exports = router;

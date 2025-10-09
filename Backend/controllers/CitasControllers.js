@@ -1,5 +1,6 @@
 const citasService = require("../services/CitasServices");
 const PDFDocument = require("pdfkit");
+const path = require("path");
 
 class CitasControllers {
   async crearRequerimiento(req, res) {
@@ -464,21 +465,75 @@ class CitasControllers {
         .text("⚕", 0, alto / 3.5, { align: "center" });
       doc.restore();
 
-      doc
-        .font("Helvetica-Bold")
-        .fontSize(18)
-        .fillColor("#000")
-        .text(
-          (cita.doctor?.nombre || "DR. NO REGISTRADO").toUpperCase(),
-          0,
-          50,
-          { align: "center" }
-        );
-      doc
-        .font("Helvetica")
-        .fontSize(12)
-        .text(cita.doctor?.ocupacion || "Médico", { align: "center" });
-      doc.moveDown(0.2);
+      const doctorName = (
+        cita.doctor?.nombre || "DR. NO REGISTRADO"
+      ).toUpperCase();
+      const doctorRole = cita.doctor?.ocupacion || "Médico";
+
+      // Header: icon on the left, name + profession to the right (vertically centered)
+      const iconPath = path.join(__dirname, "../assets/img/icon.png");
+      const iconSize = 48;
+      const iconX = 55;
+      const iconY = 45;
+      const nameFontSize = 18;
+      const roleFontSize = 12;
+      const maxTextWidth = Math.min(300, ancho - (iconX + iconSize + 80));
+      const tmpNameWidth = doc.widthOfString(doctorName, {
+        size: nameFontSize,
+      });
+      const tmpRoleWidth = doc.widthOfString(doctorRole, {
+        size: roleFontSize,
+      });
+      const blockWidth = Math.max(tmpNameWidth, tmpRoleWidth, 100);
+      const centeredTextX = Math.max(
+        iconX + iconSize + 12,
+        (ancho - Math.min(blockWidth, maxTextWidth)) / 2
+      );
+      const nameY = iconY + iconSize / 2 - nameFontSize;
+      const roleY = nameY + nameFontSize + 6;
+      try {
+        doc.image(iconPath, iconX, iconY, { width: iconSize });
+
+        doc
+          .font("Helvetica-Bold")
+          .fontSize(nameFontSize)
+          .fillColor("#000")
+          .text(doctorName, centeredTextX, nameY, {
+            width: maxTextWidth,
+            align: "center",
+          });
+
+        doc
+          .font("Helvetica")
+          .fontSize(roleFontSize)
+          .fillColor("#000")
+          .text(doctorRole, centeredTextX, roleY, {
+            width: maxTextWidth,
+            align: "center",
+          });
+      } catch (err) {
+        console.warn("No se pudo cargar el ícono:", err.message);
+        doc.fontSize(36).text("⚕", iconX, iconY);
+        doc
+          .font("Helvetica-Bold")
+          .fontSize(nameFontSize)
+          .fillColor("#000")
+          .text(doctorName, centeredTextX, nameY, {
+            width: maxTextWidth,
+            align: "center",
+          });
+        doc
+          .font("Helvetica")
+          .fontSize(roleFontSize)
+          .text(doctorRole, centeredTextX, roleY, {
+            width: maxTextWidth,
+            align: "center",
+          });
+      }
+
+      doc.y = Math.max(doc.y, iconY + iconSize + 18);
+
+      doc.moveDown(0.3);
       doc
         .lineWidth(3)
         .moveTo(60, doc.y + 5)
@@ -486,30 +541,38 @@ class CitasControllers {
         .stroke("#000");
       doc.moveDown(1.2);
 
-      // Sección datos paciente / cita
       const startX = 55;
-      const label = (y, titulo, valor) => {
+      const colGap = 150;
+
+      const drawLabel = (y, titulo, valor) => {
+        const labelWidth = colGap - startX;
         doc
           .font("Helvetica-Bold")
           .fontSize(9)
           .fillColor("#000")
-          .text(titulo.toUpperCase() + ":", startX, y, { continued: true });
+          .text(titulo.toUpperCase() + ":", startX, y, {
+            width: labelWidth,
+            align: "left",
+          });
         doc
           .font("Helvetica")
           .fontSize(10)
           .fillColor("#111")
-          .text(" " + (valor || "—"));
+          .text(valor || "—", colGap, y, {
+            width: ancho - colGap - 55,
+            align: "left",
+          });
       };
 
-      let y = doc.y;
-      label(y, "ID Cita", cita.id);
-      y = doc.y + 4;
-      label(y, "Nombre Paciente", cita.usuario?.nombre);
-      y = doc.y + 4;
-      label(y, "Fecha Cita", fechaLocal);
-      y = doc.y + 4;
-      label(y, "Tipo", cita.tipo);
-      y = doc.y + 4;
+      let y = doc.y + 5;
+      drawLabel(y, "ID Cita", cita.id);
+      y = doc.y + 12;
+      drawLabel(y, "Nombre Paciente", cita.usuario?.nombre);
+      y = doc.y + 12;
+      drawLabel(y, "Fecha Cita", fechaLocal);
+      y = doc.y + 12;
+      drawLabel(y, "Tipo", cita.tipo);
+      y = doc.y + 15;
 
       // Separador
       doc
@@ -648,7 +711,6 @@ class CitasControllers {
         .rect(30, 30, ancho - 60, alto - 60)
         .stroke("#000");
 
-      // Watermark (símbolo médico)
       doc.save();
       doc
         .fontSize(200)
@@ -657,20 +719,71 @@ class CitasControllers {
         .text("⚕", 0, alto / 3.5, { align: "center" });
       doc.restore();
 
-      doc
-        .font("Helvetica-Bold")
-        .fontSize(18)
-        .fillColor("#000")
-        .text(
-          (cita.doctor?.nombre || "DR. NO REGISTRADO").toUpperCase(),
-          0,
-          50,
-          { align: "center" }
-        );
-      doc
-        .font("Helvetica")
-        .fontSize(12)
-        .text(cita.doctor?.ocupacion || "Médico", { align: "center" });
+      const doctorName = (
+        cita.doctor?.nombre || "DR. NO REGISTRADO"
+      ).toUpperCase();
+      const doctorRole = cita.doctor?.ocupacion || "Médico";
+      const iconPathM = path.join(__dirname, "../assets/img/icon.png");
+      const iconSizeM = 48;
+      const iconXM = 55;
+      const iconYM = 45;
+      const nameFontSizeM = 18;
+      const roleFontSizeM = 12;
+      const maxTextWidthM = Math.min(300, ancho - (iconXM + iconSizeM + 80));
+      const tmpNameWidthM = doc.widthOfString(doctorName, {
+        size: nameFontSizeM,
+      });
+      const tmpRoleWidthM = doc.widthOfString(doctorRole, {
+        size: roleFontSizeM,
+      });
+      const blockWidthM = Math.max(tmpNameWidthM, tmpRoleWidthM, 100);
+      const centeredTextXM = Math.max(
+        iconXM + iconSizeM + 12,
+        (ancho - Math.min(blockWidthM, maxTextWidthM)) / 2
+      );
+      const nameYM = iconYM + iconSizeM / 2 - nameFontSizeM;
+      const roleYM = nameYM + nameFontSizeM + 6;
+      try {
+        doc.image(iconPathM, iconXM, iconYM, { width: iconSizeM });
+
+        doc
+          .font("Helvetica-Bold")
+          .fontSize(nameFontSizeM)
+          .fillColor("#000")
+          .text(doctorName, centeredTextXM, nameYM, {
+            width: maxTextWidthM,
+            align: "center",
+          });
+
+        doc
+          .font("Helvetica")
+          .fontSize(roleFontSizeM)
+          .fillColor("#000")
+          .text(doctorRole, centeredTextXM, roleYM, {
+            width: maxTextWidthM,
+            align: "center",
+          });
+      } catch (err) {
+        console.warn("No se pudo cargar el ícono:", err.message);
+        doc.fontSize(36).text("⚕", iconXM, iconYM);
+        doc
+          .font("Helvetica-Bold")
+          .fontSize(nameFontSizeM)
+          .fillColor("#000")
+          .text(doctorName, centeredTextXM, nameYM, {
+            width: maxTextWidthM,
+            align: "center",
+          });
+        doc
+          .font("Helvetica")
+          .fontSize(roleFontSizeM)
+          .text(doctorRole, centeredTextXM, roleYM, {
+            width: maxTextWidthM,
+            align: "center",
+          });
+      }
+
+      doc.y = Math.max(doc.y, iconYM + iconSizeM + 18);
       doc.moveDown(0.2);
       doc
         .lineWidth(3)
@@ -679,36 +792,44 @@ class CitasControllers {
         .stroke("#000");
       doc.moveDown(1.2);
 
-      // Sección datos paciente / cita
       const startX = 55;
-      const label = (y, titulo, valor) => {
+      const colGap = 150;
+
+      const drawLabel = (y, titulo, valor) => {
+        const labelWidth = colGap - startX;
         doc
           .font("Helvetica-Bold")
           .fontSize(9)
           .fillColor("#000")
-          .text(titulo.toUpperCase() + ":", startX, y, { continued: true });
+          .text(titulo.toUpperCase() + ":", startX, y, {
+            width: labelWidth,
+            align: "left",
+          });
         doc
           .font("Helvetica")
-          .fontSize(9)
-          .fillColor("#333")
-          .text(valor, startX + 100, y);
+          .fontSize(10)
+          .fillColor("#111")
+          .text(valor || "—", colGap, y, {
+            width: ancho - colGap - 55,
+            align: "left",
+          });
       };
-      let y = doc.y;
-      label(y, "ID Cita", cita.id);
-      y = doc.y + 4;
-      label(y, "Nombre Paciente", cita.usuario?.nombre);
-      y = doc.y + 4;
-      label(y, "Fecha Cita", fechaLocal);
-      y = doc.y + 4;
-      label(y, "Tipo", cita.tipo);
-      y = doc.y + 4;
+
+      let y = doc.y + 5;
+      drawLabel(y, "ID Cita", cita.id);
+      y = doc.y + 12;
+      drawLabel(y, "Nombre Paciente", cita.usuario?.nombre);
+      y = doc.y + 12;
+      drawLabel(y, "Fecha Cita", fechaLocal);
+      y = doc.y + 12;
+      drawLabel(y, "Tipo", cita.tipo);
+      y = doc.y + 15;
 
       // Separador
       doc
         .moveTo(55, y)
         .lineTo(ancho - 55, y)
-        .stroke("#000");
-      y += 4;
+        .stroke("#999");
       y += 15;
 
       // Sección Medicamentos
@@ -734,7 +855,6 @@ class CitasControllers {
       });
       y = doc.y + 12;
 
-      // Observaciones / Diagnóstico (usa observaciones si hay)
       if (cita.observaciones) {
         doc
           .font("Helvetica-Bold")
@@ -857,6 +977,58 @@ class CitasControllers {
     } catch (error) {
       console.error("Error al listar citas de usuarios:", error);
       res.status(500).json({ error: "Error al obtener las citas" });
+    }
+  }
+  async obtenerHistorialCompletoHastaFecha(req, res) {
+    try {
+      const { id_usuario, fecha } = req.params;
+      const historial = await citasService.obtenerHistorialCompletoHastaFecha(
+        id_usuario,
+        fecha
+      );
+      res.json(historial);
+    } catch (error) {
+      console.error("Error al obtener historial completo:", error);
+      res.status(500).json({
+        error: "Error al obtener historial médico completo del paciente",
+      });
+    }
+  }
+
+  async generarYEnviarHistorialPDF(req, res) {
+    try {
+      const { id_usuario, fecha } = req.params;
+      const pdfPath = await citasService.generarYEnviarHistorialPDF(
+        id_usuario,
+        fecha
+      );
+      res.json({
+        mensaje: "Historial enviado al correo del paciente",
+        pdfPath,
+      });
+    } catch (error) {
+      console.error("Error al generar o enviar historial PDF:", error);
+      res
+        .status(500)
+        .json({ error: "No se pudo generar o enviar el historial" });
+    }
+  }
+
+  async descargarHistorial(req, res) {
+    try {
+      const { publicId } = req.params;
+      if (!publicId)
+        return res.status(400).json({ error: "publicId requerido" });
+      const cloudinary = require("../config/cloudinary");
+      const signedUrl = cloudinary.utils.private_download_url(publicId, "pdf", {
+        resource_type: "raw",
+        type: "private",
+        expires_at: Math.floor(Date.now() / 1000) + 60 * 10,
+      });
+      return res.redirect(signedUrl);
+    } catch (e) {
+      console.error("Error al generar URL de descarga del historial:", e);
+      res.status(500).json({ error: "No se pudo generar la URL de descarga" });
     }
   }
 }

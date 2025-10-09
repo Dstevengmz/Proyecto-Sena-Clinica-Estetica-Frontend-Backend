@@ -1,4 +1,5 @@
 const HorariosDisponibles = require("../assets/HorariosDisponibles");
+const streamBuffers = require("stream-buffers");
 
 const {
   citas,
@@ -14,6 +15,8 @@ const {
   requerimientos,
   consentimiento,
 } = require("../models");
+const PDFDocument = require("pdfkit");
+const cloudinary = require("../config/cloudinary");
 const { EnviarCorreo } = require("../assets/corre");
 const { ValidarLaCita } = require("../assets/Validarfecharegistro");
 const { Op } = require("sequelize");
@@ -636,7 +639,9 @@ class HistorialClinicoService {
         // mensaje: `📅 Nueva cita con ${usuario?.nombre || "Paciente"} para el ${
         //   data.fecha
         // }`,
-        mensaje: `📅 Nueva cita con ${usuario?.nombre || "Paciente"} para el ${fechaLocal}`,
+        mensaje: `📅 Nueva cita con ${
+          usuario?.nombre || "Paciente"
+        } para el ${fechaLocal}`,
 
         fecha: new Date().toISOString(),
         tipo: "cita",
@@ -1083,24 +1088,40 @@ class HistorialClinicoService {
     cita.fecha = m.toDate();
     await cita.save();
 
-    try {
-      const doctorId = cita.id_doctor;
-      if (doctorId && global.io) {
-        const fechaLocal = moment
-          .tz(cita.fecha, "America/Bogota")
-          .format("DD/MM/YYYY HH:mm");
-        const mensaje = `La cita del paciente #${cita.usuario?.nombre} fue reagendada para ${fechaLocal}.`;
-        await this.guardarYEmitirNotificacion(global.io, doctorId, {
-          citaId: cita.id,
-          tipo: "cita_reagendada",
-          mensaje,
-          fecha: new Date().toISOString(),
-          ruta: `/citas/${cita.id}`,
-        });
-      }
-    } catch (e) {
-      console.error("Error al notificar reagendo de cita:", e);
-    }
+try {
+  const doctorId = cita.id_doctor;
+  const usuarioId = cita.id_usuario;
+  const fechaLocal = moment
+    .tz(cita.fecha, "America/Bogota")
+    .format("DD/MM/YYYY HH:mm");
+
+  if (doctorId && global.io) {
+    const mensajeDoctor = `La cita del paciente #${cita.usuario?.nombre} fue reagendada para ${fechaLocal}.`;
+    await this.guardarYEmitirNotificacion(global.io, doctorId, {
+      citaId: cita.id,
+      tipo: "cita_reagendada",
+      mensaje: mensajeDoctor,
+      fecha: new Date().toISOString(),
+      ruta: `/citas/${cita.id}`,
+    });
+  }
+
+  if (usuarioId && global.io) {
+    const mensajeUsuario = `Tu cita con el doctor fue reagendada para ${fechaLocal}.`;
+    // Enviar notificación específicamente al usuario/paciente
+    await this.guardarYEmitirNotificacionUsuario(global.io, usuarioId, {
+      citaId: cita.id,
+      tipo: "cita_reagendada",
+      mensaje: mensajeUsuario,
+      fecha: new Date().toISOString(),
+      ruta: `/citas/${cita.id}`,
+    });
+  }
+
+} catch (e) {
+  console.error("Error al notificar reagendo de cita:", e);
+}
+
 
     return cita;
   }
@@ -1137,6 +1158,163 @@ class HistorialClinicoService {
       ],
       order: [["fecha", "ASC"]],
     });
+  }
+
+  async obtenerHistorialCompletoHastaFecha(id_usuario, fechaLimite) {
+    const finDelDia = new Date(`${fechaLimite}T23:59:59`);
+    return await citas.findAll({
+      where: {
+        id_usuario,
+        fecha: { [Op.lte]: finDelDia },
+      },
+      include: [
+        {
+          model: usuarios,
+          as: "usuario",
+          attributes: ["nombre", "correo", "telefono", "genero"],
+        },
+        { model: usuarios, as: "doctor", attributes: ["nombre", "ocupacion"] },
+        {
+          model: ordenes,
+          as: "orden",
+          include: [
+            {
+              model: procedimientos,
+              as: "procedimientos",
+              attributes: ["nombre", "descripcion", "precio"],
+              through: { attributes: [] },
+            },
+          ],
+        },
+        {
+          model: examen,
+          as: "examenes",
+          attributes: ["nombre_examen", "archivo_examen"],
+        },
+        {
+          model: consentimiento,
+          as: "consentimientos",
+          attributes: ["fecha_firma", "ruta_pdf"],
+        },
+        {
+          model: requerimientos,
+          as: "requerimientos",
+          attributes: ["descripcion", "estado", "fecha_inicio"],
+        },
+      ],
+      order: [["fecha", "ASC"]],
+    });
+  }
+
+  async generarYEnviarHistorialPDF(id_usuario, fechaLimite) {
+    const historial = await this.obtenerHistorialCompletoHastaFecha(
+      id_usuario,
+      fechaLimite
+    );
+    if (!historial || historial.length === 0)
+      throw new Error("No se encontraron registros para este usuario.");
+
+    const usuario = historial[0]?.usuario;
+    if (!usuario || !usuario.correo)
+      throw new Error("El usuario no tiene correo registrado.");
+
+    const doc = new PDFDocument({ margin: 40 });
+    const bufferStream = new streamBuffers.WritableStreamBuffer({
+      initialSize: 100 * 1024,
+      incrementAmount: 10 * 1024,
+    });
+    doc.pipe(bufferStream);
+
+    doc.fontSize(20).text("Historial Médico Completo", { align: "center" });
+    doc.moveDown();
+    doc.fontSize(12).text(`Paciente: ${usuario.nombre}`);
+    doc.text(`Correo: ${usuario.correo}`);
+    doc.text(`Teléfono: ${usuario.telefono || "—"}`);
+    doc.text(`Género: ${usuario.genero || "—"}`);
+    doc.text(`Fecha de generación: ${new Date().toLocaleString("es-CO")}`);
+    doc.moveDown(1);
+
+    historial.forEach((cita, i) => {
+      doc.fontSize(14).text(`Cita #${i + 1}`, { underline: true });
+      doc.fontSize(11);
+      const campos = {
+        Fecha: cita.fecha ? new Date(cita.fecha).toLocaleString("es-CO") : null,
+        Tipo: cita.tipo,
+        Doctor: cita.doctor?.nombre,
+        Procedimientos: cita.orden?.procedimientos
+          ?.map((p) => p.nombre)
+          .join(", "),
+        "Exámenes requeridos": cita.examenes_requeridos,
+        "Nota de evolución": cita.nota_evolucion,
+        "Medicamentos recetados": cita.medicamentos_recetados,
+        Observaciones: cita.observaciones,
+        Origen: cita.origen,
+      };
+      Object.entries(campos).forEach(([k, v]) => {
+        if (v && v.toString().trim() !== "") doc.text(`${k}: ${v}`);
+      });
+      doc.moveDown();
+    });
+
+    doc.end();
+
+    await new Promise((resolve, reject) => {
+      bufferStream.once("finish", resolve);
+      bufferStream.once("error", reject);
+    });
+    const pdfBuffer = bufferStream.getContents();
+    if (!pdfBuffer || pdfBuffer.length === 0)
+      throw new Error("El PDF se generó vacío");
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "historiales_pdf",
+          resource_type: "raw",
+          type: "private", 
+          use_filename: true,
+          unique_filename: false,
+          overwrite: true,
+          filename_override: `historial_${id_usuario}.pdf`,
+        },
+        (error, result) => (error ? reject(error) : resolve(result))
+      );
+      stream.end(pdfBuffer);
+    });
+
+    const publicId = uploadResult.public_id;
+    const signedUrl = cloudinary.utils.private_download_url(publicId, "pdf", {
+      resource_type: "raw",
+      type: "private",
+      expires_at: Math.floor(Date.now() / 1000) + 60 * 60,
+    });
+
+    console.log("URL firmada para descarga (expira en 1h):", signedUrl);
+
+    // 6) Enviar correo
+      const backendHost = process.env.APP_URL || null;
+      const downloadLink = backendHost
+        ? `${backendHost.replace(/\/$/, "")}/apicitas/historial/download/${encodeURIComponent(publicId)}`
+        : signedUrl;
+
+      await EnviarCorreo({
+        receipients: usuario.correo,
+        subject: "Historial médico completo",
+        message: `
+        <h3>Hola ${usuario.nombre},</h3>
+        <p>Adjuntamos tu historial médico completo hasta <b>${fechaLimite}</b>.</p>
+        <p>También puedes descargarlo desde: <a href="${downloadLink}" target="_blank">Descargar historial PDF</a></p>
+        <p>Gracias por confiar en <strong>Clinestetica</strong>.</p>
+      `,
+        attachments: [
+          {
+            filename: `historial_${id_usuario}_${Date.now()}.pdf`,
+            content: pdfBuffer,
+            contentType: "application/pdf",
+          },
+        ],
+      });
+
+      return { mensaje: "Historial enviado correctamente", url: downloadLink, publicId };
   }
 }
 

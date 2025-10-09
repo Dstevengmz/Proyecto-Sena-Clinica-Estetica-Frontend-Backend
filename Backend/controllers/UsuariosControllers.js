@@ -43,10 +43,9 @@ class UsuariosController {
       res.status(201).json(nuevoUsuario);
     } catch (error) {
       console.error("Error al crear usuario:", error);
-      res.status(500).json({
-        message: "Hubo un error al crear el usuario",
-        error: error.message,
-      });
+      const status = error.status || 500;
+      const message = error.message || "Hubo un error al crear el usuario";
+      res.status(status).json({ message });
     }
   }
 
@@ -79,20 +78,28 @@ class UsuariosController {
     }
   }
 
-  async crearUsuariosAdmin(req, res) {
-    try {
-      const nuevoUsuario = await usuariosService.crearLosUsuariosAdmin(
-        req.body
-      );
-      res.status(201).json(nuevoUsuario);
-    } catch (error) {
-      console.error("Error al crear usuario:", error);
-      res.status(500).json({
-        message: "Hubo un error al crear el usuario",
-        error: error.message,
-      });
-    }
+async crearUsuariosAdmin(req, res) {
+  try {
+    const nuevoUsuario = await usuariosService.crearLosUsuariosAdmin(req.body);
+    res.status(201).json({
+      success: true,
+      message: "Usuario creado correctamente",
+      usuario: nuevoUsuario,
+    });
+  } catch (error) {
+    console.error("Error al crear usuario:", error);
+
+    const status = error.status || 500;
+    const message =
+      error.message ||
+      "Hubo un error al crear el usuario. Por favor, inténtelo de nuevo.";
+
+    res.status(status).json({
+      success: false,
+      message, 
+    });
   }
+}
 
   async perfilUsuario(req, res) {
     const id = req.usuario.id;
@@ -142,17 +149,16 @@ class UsuariosController {
         rol,
       };
 
-      let resultado = await usuariosService.actualizarLosUsuario(id, datos,req.usuario.rol);
-
-      if (!resultado[0]) {
-        return res.status(404).json({ error: "usuario no encontrado" });
+      const resultado = await usuariosService.actualizarLosUsuario(id, datos, req.usuario.rol);
+      if (resultado && resultado.error) {
+        return res.status(404).json({ error: resultado.error });
       }
-
-      res.json({ mensaje: "usuario actualizado correctamente" });
+      res.status(200).json({ message: "usuario actualizado correctamente", usuario: resultado.usuario });
     } catch (e) {
-      res
-        .status(500)
-        .json({ error: "Error en el servidor al actualizar el usuario" });
+      console.error("Error en actualizarUsuario:", e);
+      const status = e.status || 500;
+      const message = e.message || "Error en el servidor al actualizar el usuario";
+      res.status(status).json({ error: message });
     }
   }
 
